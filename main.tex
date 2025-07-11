@@ -1,0 +1,127 @@
+\special{dvipdfmx:config z 0} 
+\documentclass[cn, normal, black]{elegantnote}
+
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{ctex}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{bm}
+\usepackage{verbatim}
+\usepackage{pgfplots}
+\usepackage{markdown}
+\usepackage{subfiles}
+\markdownSetup{hybrid = true}
+
+\geometry{a4paper, left=1.27cm, right=1.27cm, top=1.45cm, bottom=1.6cm}
+\geometry{hcentering}
+
+\lstset{
+    showstringspaces=false
+}
+
+\lstdefinelanguage{Pseudocode}{
+    keywords = {IF, ELSEIF, ELSE, THEN, ENDIF, FOR, ENDFOR, WHIL, ENDWHILE, FROM, TO, DO, END, Function, return, true, false, NOT, INPUT, OUTPUT, None},
+    comment = [l]{//},
+    morecomment = [s]{/*}{*/}
+}
+
+\lstdefinestyle{Pseudocode}{
+    language        =   Pseudocode,
+    basicstyle      =   \ttfamily\footnotesize,
+    keywordstyle    =   \rmfamily\tiny\bfseries\underbar,
+    stringstyle     =   \itshape,
+    commentstyle    =   \itshape,
+    numbers         =   left,
+    numberstyle     =   \tiny,
+    numbersep       =   1em,
+    breaklines      =   true,
+    columns         =   flexible,
+    frame           =   tb,
+    framesep        =   0.5em,
+    basewidth       =   0.3em,
+    tabsize         =   4,
+}
+
+\lstdefinestyle{Python}{
+    language        =   Python,
+    basicstyle      =   \ttfamily\footnotesize,
+    keywordstyle    =   \rmfamily\bfseries,
+    stringstyle     =   \itshape,
+    commentstyle    =   \itshape,
+    numbers         =   left,
+    numberstyle     =   \tiny,
+    numbersep       =   1em,
+    breaklines      =   true,
+    columns         =   flexible,
+    frame           =   tb,
+    framesep        =   0.5em,
+    basewidth       =   0.3em,
+    tabsize         =   4,
+}
+
+\lstdefinestyle{Cpp}{
+    language        =   C++,
+    basicstyle      =   \ttfamily\footnotesize,
+    keywordstyle    =   \rmfamily\bfseries,
+    stringstyle     =   \itshape,
+    commentstyle    =   \itshape,
+    numbers         =   left,
+    numberstyle     =   \tiny,
+    numbersep       =   1em,
+    breaklines      =   true,
+    columns         =   flexible,
+    frame           =   tb,
+    framesep        =   0.5em,
+    basewidth       =   0.3em,
+    tabsize         =   4,
+}
+
+\lstdefinestyle{MATLAB}{
+    language        =   MATLAB,
+    basicstyle      =   \ttfamily\footnotesize,
+    keywordstyle    =   \rmfamily\bfseries,
+    stringstyle     =   \itshape,
+    commentstyle    =   \itshape,
+    numbers         =   left,
+    numberstyle     =   \tiny,
+    numbersep       =   1em,
+    breaklines      =   true,
+    columns         =   flexible,
+    frame           =   tb,
+    framesep        =   0.5em,
+    basewidth       =   0.3em,
+    tabsize         =   4,
+}
+
+\title{408笔记}
+
+\author{Chunyin Chan}
+\date{}
+
+\begin{document}
+\begin{sloppypar}
+    \maketitle
+    \setcounter{page}{0}
+    \thispagestyle{empty}
+
+    \newpage 
+    \tableofcontents
+    \setcounter{page}{0}
+    \thispagestyle{empty}
+
+    \newpage
+    
+    \subfile{./DataStructure/DS.tex}
+    
+
+
+
+
+\end{sloppypar}
+
+\end{document}
