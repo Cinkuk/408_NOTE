@@ -7,4 +7,7 @@ elegantnote-en.tex
 *.lua
 *.gz
 *.toc
+*.bcf
+*.out
+*.xml
 
