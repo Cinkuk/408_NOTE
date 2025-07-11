@@ -1,0 +1,10 @@
+elegantnote.cls
+elegantnote-cn.tex
+elegantnote-en.tex
+.DS_Store
+*.aux
+*.log
+*.lua
+*.gz
+*.toc
+
