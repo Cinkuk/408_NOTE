@@ -1,0 +1,40 @@
+\documentclass[../../DS]{subfiles}
+
+\begin{document}
+\begin{sloppy}
+
+\section{栈}
+
+    \textbf{栈}: 受限的线性表, \textbf{只允许在一端进行插入删除}的\textbf{线性表}. \textbf{栈顶}: 允许进行插入删除的一端; \textbf{栈底}: 固定的, 不允许进行插入删除; \textbf{空栈}: 不含任何元素的空表. 操作特性: \textbf{后进先出, Last In First Out, LIFO}
+
+    \textbf{卡特兰数}: 当n个不同元素进栈时, 出栈的可能序列有$\frac{1}{n+1} \binom{2n}{n}$.
+
+    \textbf{栈的基本操作}
+    \begin{lstlisting}[style = Cpp]
+    bool InitialStack(SqStack &s); // 初始化栈
+    bool StackEmpty(SqStack s); // 判断栈是否为空
+    bool Push(SqStack &s, Type x); // 将x压入栈顶
+    bool Pop(SqStack &s, Type &x); // 从栈顶弹出元素, 用x返回
+    bool GetTop(SqStack s, Type &x); // 读取栈顶元素, 非空则用x返回
+    bool DestroyStack(SqStack &s); // 销毁栈
+    \end{lstlisting}
+
+    \textbf{顺序栈结构}
+    \begin{lstlisting}[style = Cpp]
+    typedef struct{
+        Type data[MAXSIZE]; // 元素
+        int top;            // 栈顶指针
+    }SqStack;
+    \end{lstlisting}
+    
+    \textbf{链栈结构}
+    \begin{lstlisting}[style = Cpp]
+    typedef struct{
+        Type data; // 数据域
+        LinkNode *front, *rear; // 头尾指针
+    }LinkNode, LiStack;
+    \end{lstlisting}
+
+
+\end{sloppy}
+\end{document}

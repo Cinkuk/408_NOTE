@@ -33,7 +33,7 @@ template <typename T> bool ListDelete(T &, int, Type &);
 template <typename T> void PrintList(T);
 template <typename T> bool Empty(T);
 
-int SeqListTest ()
+int SeqList_main ()
 {
     cout << "---------静态分配-----------" << endl;
     SqList L;
