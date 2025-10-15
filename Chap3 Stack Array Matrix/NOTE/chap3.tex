@@ -26,7 +26,78 @@
         int top;            // 栈顶指针
     }SqStack;
     \end{lstlisting}
+
+    \textbf{顺序栈基本操作}
+    \begin{lstlisting}[style = Cpp]
+    // 初始化栈
+    bool InitialStack(SqStack &s)
+    {
+        s.top = -1;
+        return true;
+    }
     
+    // 判断栈是否为空
+    bool StackEmpty(SqStack s)
+    {
+        return s.top == -1;
+    }
+    
+    // 将x压入栈顶
+    bool Push(SqStack &s, Type x)
+    {
+        if (s.top == MAXSIZE) return false; // full stack
+        s.data[++s.top] = x;
+        return true;
+    }
+    
+    // 从栈顶弹出元素, 用x返回
+    bool Pop(SqStack &s, Type &x)
+    {
+        if (s.top == -1) return false; // empty stack
+        x = s.data[s.top--];
+        return true;
+    }
+    
+    // 读取栈顶元素, 非空则用x返回
+    bool GetTop(SqStack s, Type &x)
+    {
+        if (s.top == -1) return false; // empty satck
+        x = s.data[s.top];
+        return true;
+    }
+    \end{lstlisting}
+
+    s.top为顺序栈的栈顶指针, 初始化时有s.top=-1和s.top=0两种初始化方法, 两种初始化方法的入栈, 出栈, 判空, 判满操作不同. 
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \toprule
+            {} & s.top = -1 & s.top = 0 \\
+            \midrule
+            入栈 & s.data[++s.top] = x & s.data[s.top++] = x \\ 
+            出栈 & x = s.data[s.top--] & x = s.data[--s.top] \\
+            判空 & s.top == -1 & s.top == 0 \\
+            判满 & s.top == MAXSIZE - 1 & s.top == MAXSIZE \\
+            \bottomrule
+            \end{tabular}
+    \end{center}
+    
+    \textbf{共享栈}: 同一块连续内存区域M[0...MAXSIZE-1], M[0]时栈0的栈底, M[MAXSIZE-1]是栈1的栈底. 
+
+    判栈空: 栈0: \verb|top0 == -1|; 栈1: \verb|top1 == MAXSIZE|
+
+    入栈: 栈0: \verb|data[++top0] = x|; 栈1: \verb|data[--top1] = x|
+
+    出栈: 栈0: \verb|x = data[top0--]|; 栈1: \verb|x = data[top1++]|
+
+    栈满: \verb|top1 - top0 == 1|
+
+    共享栈是为了更好地利用空间, 只有在整个存储空间都满时才会发生上溢. 存取的T(n) = O(1). 共享栈减少了上溢的可能性, 相比于两个栈独自分配空间, 共享栈合并了两个栈的空间, 相比于独立空间更大, 因此, 一个栈可以使用另一个栈的存储空间, 减少了上溢的可能性.
+
+    \textbf{上溢}: 存储区域满但继续写入, 浮点数中过大设为正无穷; \textbf{下溢}: 存储区域已空仍弹出元素, 浮点数中过小归零
+
+    \textbf{链栈}
+
     \textbf{链栈结构}
     \begin{lstlisting}[style = Cpp]
     typedef struct{
@@ -34,6 +105,65 @@
         LinkNode *front, *rear; // 头尾指针
     }LinkNode, LiStack;
     \end{lstlisting}
+
+    链栈不存在栈满上溢的情况, 并规定\textbf{所有的操作都在单链表的表头进行}, 通常链栈不设置头结点. \verb|head|指向栈顶, 表尾为栈底. 因此, 入栈出栈操作即在单链表的头结点前插入结点或释放当前头结点.
+
+\newpage
+\section{队列}
+
+    队列(Queue), 简称队, 一种操作受限的线性表, 只允许\textbf{在表的一端插入, 在另一端删除}. 插入元素: 入队, 删除元素: 出队. \textbf{先进先出, First In First Out, FIFO}
+
+    \textbf{队头(front), 队首}: 允许删除的一端; \textbf{队尾(rear)}: 允许插入的一端; 空队列
+
+    \textbf{顺序存储结构}
+
+    \begin{lstlisting}[style = Cpp]
+    typedef struct{
+        Type data[MAXSIZE];
+        int front, rear; // 队头和队尾指针
+    } SqQueue;
+    \end{lstlisting}
+
+    \textbf{基本操作}
+
+    \begin{lstlisting}[style = Cpp]
+    bool InitQueue(SqQueue &Q); // 初始化队列
+    bool QueueEmoty(SqQueue Q); // 判断队空
+    bool EnQueue(SqQueue &Q, Type x); // 元素x入队
+    bool DeQueue(SqQueue &Q, Type &x); // 元素出队并用x返回
+    bool GetHead(SqQueue Q, Type &x); // 读取队头元素并用x返回
+    \end{lstlisting}
+
+    \subsection{顺序队列}
+
+    会假溢出, 几乎不用. 
+    
+    初始化: \verb|Q.front = 0; Q.rear = 0;| 入队: \verb|Q.data[Q.rear++] = x| 出队: \verb|x =Q.data[Q.front++]|
+
+    不能使用 \verb|Q.rear == MAXSIZE| 来判断队满, 只要累计入队次数达到MAXSIZE, Q.rear就会指向MAXSIZE, 造成假溢出.
+
+    \subsection{循环队列}
+
+    存储上与顺序队列一致, 操作上增加对MAXSIZE的取余操作使得在逻辑上将队列视作环状.\\
+    初始化: \verb|Q.front = 0; Q.rear = 0;| \\
+    队头指针加一: \verb|Q.front = (Q.front + 1) % MAXSIZE| \\
+    队尾指针加一: \verb|Q.rear = (Q.rear + 1) % MAXSIZE| \\
+    队列长度: \verb|(Q.rear + MAXSIZE - Q.front) % MAXSIZE|  (Q.rear + MAXSIZE使得rear在数值上大于front, 再取余数保留rear和front差值的绝对值大小)
+
+    使用顺序表的处理思路, 会出现初始化和队满时均有 \verb|Q.rear == Q.front|, 因此该条件不能判断队满, 判断队满有3种思路:
+
+    (1) 闲置一个存储单元来区分队空和队满, 队列可用长度-1, 较常用.
+
+
+
+
+
+    
+
+    
+    
+    
+
 
 
 \end{sloppy}
