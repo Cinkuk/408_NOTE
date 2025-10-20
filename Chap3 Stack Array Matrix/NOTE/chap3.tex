@@ -71,14 +71,14 @@
 
     \begin{center}
         \begin{tabular}{|c|c|c|}
-            \toprule
+            \hline
             {} & s.top = -1 & s.top = 0 \\
-            \midrule
+            \hline
             入栈 & s.data[++s.top] = x & s.data[s.top++] = x \\ 
             出栈 & x = s.data[s.top--] & x = s.data[--s.top] \\
             判空 & s.top == -1 & s.top == 0 \\
             判满 & s.top == MAXSIZE - 1 & s.top == MAXSIZE \\
-            \bottomrule
+            \hline
             \end{tabular}
     \end{center}
     
@@ -100,9 +100,9 @@
 
     \textbf{链栈结构}
     \begin{lstlisting}[style = Cpp]
-    typedef struct{
+    typedef struct LinkNode{
         Type data; // 数据域
-        LinkNode *front, *rear; // 头尾指针
+        struct LinkNode *front, *rear; // 头尾指针
     }LinkNode, LiStack;
     \end{lstlisting}
 
@@ -293,6 +293,7 @@
     EX. 输入受限. 输入: 1 2 3 4 5. 输出: 4 2 1 3 5 合法. 5输入后立刻输出. 右边输出的输出顺序: 3124, Inp1, RInp2, LInp3, RInp 4. \\
     输出: 4 1 3 2 5 非法. 5输入后立刻输出, 右边输出的输出顺序: 2314, Inp1, LInp2, 3不能插入1 2之间, 非法 \\
 
+\newpage
 \subsection{栈和队列的应用}
 
 \subsubsection{括号匹配}
@@ -306,6 +307,42 @@
         (2) 栈顶非匹配的左括号或栈空(EX. [ ) ), 非法序列结束. 
     4. 序列读入完: (1) 栈空, 匹配; (2) 栈非空, 不匹配
     \end{verbatim}
+
+    \begin{lstlisting}[style = Cpp]
+    bool bracket_pair(std::string s)
+    {   
+        using namespace std;
+        // initial stack
+        SqStack stack;
+        InitialStack(stack);
+        vector <char> lbrackets {'(', '[', '{'};
+        vector <char> rbrackets {')', ']', '}'};
+        char e;
+    
+        for (char c : s)
+        {
+            auto it = find(lbrackets.begin(), lbrackets.end(), c);
+            // left bracket
+            if (it != lbrackets.end()) Push(stack, c); // push in stack
+            // right brackt
+            else {
+                auto it = find(rbrackets.begin(), rbrackets.end(), c);
+                if (it == rbrackets.end()) continue; // not a bracket
+                GetTop(stack, e);
+                // pair bracket
+                if (c == ')' && e == '(') Pop(stack, e);
+                else if (c == ']' && e == '[') Pop(stack, e);
+                else if (c == '}' && e == '{') Pop(stack, e);
+                else return false; // unpair bracket occur
+            }
+        }
+        if (StackEmpty(stack)) return true;
+        else return false;
+    }
+    // string s1 {"((([([()])])))"}; // true
+    // string s2 {"{{[()[]]}}"}; // true
+    // string s3 {"[][](]"}; // false
+    \end{lstlisting}
 
 \newpage
 \subsubsection{算术表达式格式转换}
@@ -359,11 +396,135 @@
     遍历完序列: 栈顶为结果
     \end{verbatim}
     
-\subsection{数组和特殊矩阵}
+\section{数组和特殊矩阵}
 
     \textbf{数组}: n个相同类型元素组成的线性表. \textbf{数组元素}: 每个数据元素. \textbf{下标}: 每个元素在数组中的序号. \textbf{维界}: 下标的取值范围
 
     \textbf{数组的存储}: A[0...n-1]: $LOC(a_i) = LOC(a_0) + i \times L\ \ (0 \leq i < n)$
+
+    假设: 行下标的范围为$[0...r]$, 列下标的范围为$[0...c]$, 每个数组元素占L字节
+
+    \textbf{行优先}: 第i+1行有j个, 前i行每行c+1列存满. $LOC(a_{i, j}) = LOC(a_{0, 0}) + L \times [(c +1) \times i + j]$
+
+    \textbf{列优先}: 第j+1列有i个, 前j列每列r+1行存满. $LOC(a_{i, j}) = LOC(a_{0, 0}) + L \times [(r + 1) \times j + i]$
+
+\subsection{特殊矩阵压缩存储}
+
+    \textbf{对称矩阵}
+
+    将n阶二维矩阵存储在一维矩阵$B[n(n+1)/2]$
+
+    由于$a_{i, j} = a_{j, i}$, 可以只存储对角线和一个三角部分, 下标无区别. \\
+    $a_{i, j}$在一维数组中的序号为: $1 + 2 + \dots + i-1 + j = \frac{i(i-1)}{2} + j$ \\
+    对于上三角的元素, 交换i, j可得到相对应的元素下标 \verb|B[k]|.
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+        0-index: 
+        \begin{equation*}
+            k = \begin{cases}
+            \frac{i(i-1)}{2} + j - 1, & i \geq j \mbox{下三角} \\
+            \frac{j(j-1)}{2} + i - 1, & i < j \mbox{上三角} \\
+            \end{cases}
+        \end{equation*}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+        1-index: 
+        \begin{equation*}
+            k = \begin{cases}
+            \frac{i(i-1)}{2} + j, & i \geq j \mbox{下三角} \\
+            \frac{j(j-1)}{2} + i, & i < j \mbox{上三角} \\
+            \end{cases}
+        \end{equation*}
+    \end{minipage}
+    \end{center}
+    
+    \newpage
+    \textbf{三角矩阵}
+
+    仅上三角或下三角元素非0, 其余为0, 存储在一维$B[n(n-1)/2 + 1]$
+    
+    上三角 \\
+    $a_{i, j}$在一维数组中的序号为: \\
+    $n + (n-1) + \dots + (n - (i - 1) + 1) + (j - i + 1) = \frac{(i-1)(2n-i+2)}{2} + j - i + 1$ \\
+    即前i-1行 + 第i行第j个(从对角线i到j)
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+        0-index, B[k]:
+        \begin{equation*}
+            k = \begin{cases}
+            \frac{(i-1)(2n - i + 2)}{2} + j - i, & i \leq j \mbox{上三角} \\
+            \frac{n(n-1)}{2}, & i > j \mbox{下三角, 为0} 
+            \end{cases}
+        \end{equation*}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+        1-index, B[k]:
+        \begin{equation*}
+            k = \begin{cases}
+            \frac{(i-1)(2n - i + 2)}{2} + j - i + 1, & i \leq j \mbox{上三角} \\
+            \frac{n(n-1)}{2} + 1, & i > j \mbox{下三角, 为0} 
+            \end{cases}
+        \end{equation*}
+    \end{minipage}
+    \end{center}
+
+    下三角 \\
+    $a_{i, j}$在一维数组中的序号为: $1 + 2 + \dots + i-1 + j = \frac{i(i-1)}{2} + j$. 即前i-1行 + 第i行第j个
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+        0-index, B[k]:
+        \begin{equation*}
+            k = \begin{cases}
+            \frac{n(n+1)}{2}, & i \leq j \mbox{上三角} \\
+            \frac{i(i-1)}{2} + j - 1, & i > j \mbox{下三角, 为0} 
+            \end{cases}
+        \end{equation*}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+        1-index, B[k]:
+        \begin{equation*}
+            k = \begin{cases}
+            \frac{n(n-1)}{2}, & i \leq j \mbox{上三角} \\
+            \frac{i(i-1)}{2} + j, & i > j \mbox{下三角, 为0} 
+            \end{cases}
+        \end{equation*}
+    \end{minipage}
+    \end{center}
+    
+    \textbf{三对角矩阵(带状矩阵)}
+
+    对n阶矩阵任意元素$a_{i, j}$, 若$|i-j| > 1,\ a_{i, j} = 0$
+
+    $a_{i, j}$的序号: [前i-1行] + [i行j号]: $[3(i - 1) - 1] + [j - i + 2] = 2i + j - 2$ \\
+    故: $a_{i, j}$, \verb|b[[k]|: 0-index: $k = 2i + j - 3$; 1-index: $k = 2i + j - 2$
+
+    从序号反求i, j: 元素在0-index数组的\textbf{下标}为k: $3(i-1) - 1 - 1 < 3(i-1) - 1 \leq k \leq  3i - 1 - 1 < 3i - 1$ \\
+    得: $i \leq \frac{k + 1}{3} + 1 \implies i = \lfloor \frac{k + 1}{3} + 1 \rfloor$, 根据 $k = 2i + j - 3$或$k = 2i + j - 2$求出j.
+
+    \textbf{稀疏矩阵}
+
+    非零元素显著少于矩阵元素个数. 使用三元组或十字链表存储.
+
+    三元表: 存储非零元素个数, 矩阵行数和列数, 非零元素详情.
+
+    EX.
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            i & j & $a_{i, j}$ \\
+            \hline
+            0 & 6 & 13 \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    
+    
+    
+    
     
     
     
