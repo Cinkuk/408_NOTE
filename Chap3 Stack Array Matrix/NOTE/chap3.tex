@@ -367,6 +367,87 @@
     \verb|-> 2 3 * 4 5 -> 2 3 * 4 5 2 -> 2 3 * 4 5 2 - -> 2 3 * 4 5 2 - * -> 2 3 * 4 5 2 - * +|\\
     \verb|->  [+(*(-]  ->    [+(*(-]  ->     [+(*]     ->      [+]        ->      []|
 
+    \begin{lstlisting}[style = Cpp]
+    // 123 + 45 * 67 / (89 - 12) * 3 + 456 * (78 - 9) // 123 45 67 * 89 12 - / 3 * + 456 78 9 - * +
+    std::string expression_infix2post(std::string e)
+    {
+        using namespace std;
+        string post {""};
+        SqStack stack;
+        InitialStack(stack);
+    
+        int n = e.length();
+        int begin, end; // split string
+        begin = end = 0;
+        string temp, top;
+        int flag; //0: operator, 1: digit, 2: bracket
+    
+        vector<char> operators {'+', '-', '*', '/'};
+        vector<char> digits {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+        map<string, int> precedence {
+            {"+", 1}, {"-", 1}, {"*", 2}, {"/", 2}, };
+    
+        while (end < n) {
+            // split expression 
+            auto it = find(operators.begin(), operators.end(), e[end]);
+            if (it != operators.end()) { // operator
+                temp = e[end]; end++;
+                flag = 0;
+            }
+            else if (e[end] == ' ') { // space
+                end++; 
+                continue;
+            }
+            else if (e[end] == '(' || e[end] == ')') { // bracket
+                temp = e[end]; end++;
+                flag = 2;
+            }
+            else { //digit
+                begin = end;
+                while (end < n && find(digits.begin(), digits.end(), e[end]) != digits.end())
+                    end++;
+                temp = e.substr(begin, end - begin); // (end - 1) - begin + 1
+                flag = 1;
+            }
+    
+            // action 
+            if (flag == 2) { // bracket
+                if (temp == "(") Push(stack, temp);
+                else {
+                    GetTop(stack, top);
+                    while (top != "(") {
+                        post += " "; post += top;
+                        Pop(stack, top); GetTop(stack, top);
+                    } // while
+                    Pop(stack, top); // pop '('
+                } //else
+            }
+            else if (flag == 1) { // digit
+                post += " "; post += temp;
+            }
+            else { // operator
+                while (!StackEmpty(stack)) {
+                    GetTop(stack, top);
+                    if (top == "(") break;
+                    if (precedence[top] >= precedence[temp]) {
+                        post += " "; post += top;
+                        Pop(stack, top);
+                    }
+                    else break;
+                }
+                Push(stack, temp);      
+            }
+        }
+        // clear stack
+        while (!StackEmpty(stack)) {
+            Pop(stack, top);
+            post += " "; post += top;
+        }
+        return post;
+    }
+    \end{lstlisting}
+
+\newpage
 \subsubsection{表达式求值}
 
     \textbf{中缀表达式求值}: 双栈, 操作数栈operand, 操作符栈operator. 
@@ -395,7 +476,54 @@
         2. 如果是操作符<op>, 依次弹出Y和X, 计算X<op>Y并压入栈
     遍历完序列: 栈顶为结果
     \end{verbatim}
+
+    \begin{lstlisting}[style = Cpp]
+    // 123 + 45 * 67 / (89 - 12) * 3 + 456 * (78 - 9) // 31704.5
+    double calculate_infix(std::string infix)
+    {
+        using namespace std;
     
+        string post = expression_infix2post(infix);
+        stack<double> stk;
+        int n = post.length();
+        string temp;
+        double X, Y;
+        int begin, end;
+        begin = end = 0;
+    
+        vector<char> operators {'+', '-', '*', '/'};
+        vector<char> digits {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    
+        while (end < n) {
+            // split expression 
+            auto it = find(operators.begin(), operators.end(), post[end]);
+            if (it != operators.end()) { // operator
+                temp = post[end]; end++;
+                Y = stk.top(); stk.pop();
+                X = stk.top(); stk.pop();
+                if (temp == "+") stk.push(X + Y);
+                else if (temp == "-") stk.push(X - Y);
+                else if (temp == "*") stk.push(X * Y);
+                else if (temp == "/") stk.push(X / Y);
+    
+            }
+            else if (post[end] == ' ') { // space
+                end++; 
+                continue;
+            }
+            else { //digit
+                begin = end;
+                while (end < n && find(digits.begin(), digits.end(), post[end]) != digits.end())
+                    end++;
+                temp = post.substr(begin, end - begin); // (end - 1) - begin + 1
+                stk.push(stod(temp));
+            }
+        }
+        return stk.top();
+    }
+    \end{lstlisting}
+    
+\newpage
 \section{数组和特殊矩阵}
 
     \textbf{数组}: n个相同类型元素组成的线性表. \textbf{数组元素}: 每个数据元素. \textbf{下标}: 每个元素在数组中的序号. \textbf{维界}: 下标的取值范围
@@ -521,36 +649,6 @@
         \end{tabular}
     \end{center}
     
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    
-    
-    
-
-
 
 \end{sloppy}
 \end{document}
