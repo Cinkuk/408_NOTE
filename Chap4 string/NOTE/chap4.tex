@@ -1,0 +1,177 @@
+\documentclass[../../DS]{subfiles}
+
+\begin{document}
+\begin{sloppy}
+\section{串(string)}
+
+    是由零个或多个字符组成的有限序列. 记为 $S = 'a_1 a_2 \dots a_n'\ (n \geq 0)$.
+
+    \textbf{串名}: $S$; \textbf{串的长度}: $n$; \textbf{空串}: $n=0$的串(可表示为$\emptyset$); \textbf{子串}: 串中任意多个连续的字符组成的子序列, 0个字符也是子串; \textbf{主串}: 包含子串的串; \textbf{字符在串中的位置}: 字符在串中的序号; \textbf{子串在主串中的位置}: 子串第一个字符在主串中的序号; \textbf{空格串}: 由一个或多个空格组成的串, 空格亦为字符, 空格串不是空串; \textbf{模式串}: 模式匹配算法中, 要在主串中搜索的字符串
+
+    \textbf{基本操作}
+
+    \begin{lstlisting}[style = Cpp]
+    StrAssign(&T, chars); // 赋值, chars赋值给T
+    StrCopy(&T, S); // S复制到T
+    StrEmpty(S); // 判断S是否为空串, 空则返回true, 否则返回false
+    StrCompare(S, T); // 比较. 返回S[i] - T[i]. 
+        // S[i] T[i]指向第一个失配字符, 返回在ASCII或UTF-8等编码表中的编码的差值(字典序)
+        // 当其中S[i], T[i]其中一个为空时, 较长的串大
+    StrLength(S); // 求串长
+    SubString(&Sub, S, pos, len); // 将S从pos开始长度为len的子串赋给Sub
+    Concat(&T, S1, S2); // 串联接, T = S1 + S2
+    Index(S, T); // 返回T在S中的位置, 无则返回0
+    ClearString(&S); // 将S清空为空串
+    DestroyString(&S); // 销毁S
+    \end{lstlisting}
+
+    其中, 串赋值StrAssign, 串联接Concat, 串比较StrCompare, 求串长StrLength, 求子串SubString 为串的最小操作子集.
+
+    \textbf{存储结构}
+    
+    有三种: 
+
+    1. \textbf{定长顺序存储}: 此时记录串的长度有两类方式: (1) 新增结构体成员int len记录; (2) 空置字符数组ch[0]用以记录长度len, 但是char占据8 bit, 最大数值为255; (3) 不显式记录, 在字符结尾使用空字符 \verb|\0|作为结束标志, 结束标志不计入长度. 对于此类方式, 超出最大长度的字符会被舍去(\textbf{截断}).  (约定闲置ch[0]以统一序号和下标)
+
+    \begin{lstlisting}[style = Cpp]
+    typedef struct {
+        char ch[MAXSIZE];
+        int len;
+    } SString;
+    \end{lstlisting} 
+    
+    2. \textbf{堆分配存储}: 动态分配空间存储串
+
+    \begin{lstlisting}[style = Cpp]
+    typedef struct {
+        char *ch;
+        int len;
+    } SString;
+    \end{lstlisting}
+
+    3. \textbf{块链存储}: 链式存储, 每个结点有一个或这个多个字符. \textbf{块}: 每个结点; \textbf{块链结构}: 整个链表. 最后一个结点为存满的使用\#填充. 若结点字符少, 存储密度低, 通过增加每个结点存储的字符数提高存储密度.
+
+\newpage
+\subsection{串的朴素匹配算法}
+
+    朴素模式匹配是一种暴力算法. 从主串和模式串的第一个字符开始逐个匹配, 若发生失配, 主串指针跳转到本轮匹配起始字符的下一字符, 模式串指针跳转到首字符重新开始匹配. 假设主串长为n, 模式串长为m, 则最多在主串中匹配n-m+1个子串. 时间复杂度为$O(mn)$, 但是在一般情况下, 实际时间复杂度近似$O(m+n)$(每轮最终会失配的匹配一般只比较少量字符就会发生失配).
+
+    \begin{lstlisting}[style = Cpp]
+    // 主串S, 子串T
+    int Index(std::string S, std::string T)
+    {
+        int i{1}; int j {1};
+        while (i <= S.length() && j <= T.length()){
+            if (S[i-1] == T[j-1]) { // 继续比较下一字符
+                i++; j++;
+            }
+            else {
+                i = i - j + 2; // i - j + 1 + 1
+                j = 1;
+            }
+        } // while
+        if (j > T.length()) return i - T.length(); // (i + 1) - T.len
+        return 0;
+    }
+    \end{lstlisting}
+
+\subsection{KMP算法}
+
+    KMP仅在主串和子串有大量的部分匹配情况下, 才会快于普通算法. 时间复杂度为$O(m+n)$. 主要优点是主串指针不会回溯.
+
+    KMP通过计算next数组来控制主串中失配的字符下一次与模式串中哪一个字符匹配. 算法的设计思想是: 当主串中当前已经匹配相等的字符中, 存在后缀与模式串的前缀相同, 则可以将模式串向右滑动, 将已匹配的后缀与模式串前缀对齐, 以此减少需要匹配的字符. 主串的指针无需回溯, 模式串向右滑动的位数只与模式串本身有关.
+
+    对于第一位字符失配, 固定 \verb|next[1] = 0|, 同时指针ij均自增; 对于第二位字符失配, 固定 \verb|next[2] = 1|. \\
+    即: next数组前两位固定 \verb|next[1] = 0; next[2] = 1;|
+
+\newpage
+\subsubsection{手算next数组}
+
+    考虑模式串 \verb|abaabcaba|. 每次在失配字符之前画一条竖线. 此处使用 \verb|()|标出匹配的前后缀, 有匹配则当前next为前缀之后第一个字符的序号, 无匹配前后缀则当前next为1\\
+    \verb|01        01 1       011   2      0112   2     01122   3    011223 1   0112231   2| \\
+    \verb|abaabcaba ab\aabcaba ab(a)\abcaba aba(a)\bcaba aba(ab)\caba abaabc\aba abaabc(a)\ba| \\
+    \verb|abaabcaba ab\aabcaba (a)ba\abcaba (a)baa\bcaba (ab)aab\caba abaabc\aba (a)baabca\ba| \\
+    \verb|01122312   3| \\
+    \verb|abaabc(ab)\a| \\
+    \verb|(ab)aabcab\a|
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+            \hline
+            $i$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+            \hline
+            模式串 & a & b & a & a & b & c & a & b & a \\ 
+            \hline
+            $next[i]$ & 0 & 1 & 1 & 2 & 2 & 3 & 1 & 2 & 3 \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+\subsubsection{算法实现}
+
+    对于next数组. 当计算next[i]时, 有两种情况: (1) T[i-1]与T[next[i-1]]相同; (2) T[i-1] 与 T[next[i-1]]不同:
+
+    (1) T[i-1]与T[next[i-1]]相同: 则T[i]应该与T[next[i-1]]的下一位比较, 因此有: \verb|next[i] = next[i-1] + 1|
+
+    (2) T[i-1] 与 T[next[i-1]]不同: 考虑到, next[i]的意义是: 当S[j]与T[i]失配时, S[j]应该与T[next[i]]重新开始比较. 因此, T[i-1] 与 T[next[i-1]]不同, 即T[i-1] 与 T[next[i-1]]失配, 因此, T[i-1]应该与T[next[next[i-1]]]重新开始比较. 由此可以类推: T[i-1]最终需要与T[next \dots next[i-1]]比较, 此时, 两者应该相同或者后者已经等于0.
+
+    \begin{lstlisting}[style = Cpp]
+    // 计算next
+    void get_next(std::string S, int next[])
+    {
+        int i {1}; int j {0};
+        next[1] = 0;
+        while (i < S.length()){
+            if (j == 0 || S[i-1] == S[j-1]){
+                next[i+1] = j + 1; // next[i+1] = next[i] + 1
+                i++; j++;
+            }
+            else j = next[j]; // next[next[i]]
+        }
+    }
+    \end{lstlisting}
+
+    \newpage
+    \begin{lstlisting}[style = Cpp]
+    // 主串S, 子串T
+    int KMP_Index(std::string S, std::string T)
+    {
+        int i {1}; int j {1};
+        int next[T.length()+1];
+        next[0] = -1;
+        get_next(T, next);
+
+        while (i <= S.length() && j <= T.length()){
+            if (j == 0 || S[i-1] == T[j-1]){ // 比较下一位
+                i++; j++; 
+            }
+            else j = next[j];
+        } // while 
+        if (j > T.length()) return i - T.length(); // (i + 1) - T.len
+        return 0;
+    }
+    \end{lstlisting}
+
+\subsection{KMP算法的优化}
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+    
+
+
+
+
+
+
+\end{sloppy}
+\end{document}
