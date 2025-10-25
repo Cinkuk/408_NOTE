@@ -122,11 +122,11 @@
         int i {1}; int j {0};
         next[1] = 0;
         while (i < S.length()){
-            if (j == 0 || S[i-1] == S[j-1]){
+            if (j == 0 || S[i-1] == S[j-1]){ // S[i-1] == S[next[i-1]]
                 next[i+1] = j + 1; // next[i+1] = next[i] + 1
                 i++; j++;
             }
-            else j = next[j]; // next[next[i]]
+            else j = next[j]; // S[i-1] != S[next[i-1]]; S[next[next[i-1]]]
         }
     }
     \end{lstlisting}
@@ -152,25 +152,64 @@
     }
     \end{lstlisting}
 
+\newpage
 \subsection{KMP算法的优化}
+\vspace{-0.7\baselineskip}
+
+    对于next数组, 假设S[i]与T[j]失配后, S[i]与T[next[j]]匹配. 当 \verb|T[j] == T[next[j]]|时, 这一步匹配必然失配. 因此, KMP的优化思想是: 当 \verb|T[j] == T[next[j]|时, 递归地修正 \verb|next[j] = next[next[j]]|, 直至 \verb|next[j] == 0| 或者 \verb|T[j] != T[next[j]]|, 再执行S[i]与T[next[j]]的匹配. 因此, 在开始匹配前, 计算出依据该思想修正的nextval数组代替next数组进行匹配.
+
+\vspace{-1\baselineskip}
+\subsubsection{手算nextval数组}
+\vspace{-0.7\baselineskip}
+
+    首先算出next数组, 固定$nextval[1] = 0$, 从第2位开始算起. \\
+    若S[i]与S[next[i]]不等, 则 \verb|S[nextval[i]] = S[next[i]]| \\
+    若S[i]与S[next[i]]相等, 则 \verb|S[nextval[i] = S[nextval[nextval[i]]]|. 即令\verb|j = next[i]|, 递归地执行 \verb|j = next[j]]|直至 \verb|next[j] = 0|或者 \verb|S[i] != S[j]|
+
+    EX. 串 \verb|abaabcaba| \\
+    \verb|next    = 0, 1, 1, 2, 2, 3, 1, 2, 3| \\
+    \verb|nextval = 0, 1, 0, 2, 1, 3, 0, 1, 0|
+
+\vspace{-1\baselineskip}
+\subsubsection{算法实现}
+\vspace{-0.7\baselineskip}
+
+    优化的KMP算法与KMP算法仅在next数组和nextval数组计算上有差异, 比较逻辑无异.
     
+    \begin{lstlisting}[style = Cpp]
+    // 计算nextval
+    void get_nextval(std::string S, int nextval[])
+    {
+        int i {1}; int j {0};
+        nextval[1] = 0;
+        while (i < S.length()){
+            if (j == 0 || S[i-1] == S[j-1]) { // S[i-1] == S[nextval[i-1]]
+                i++; j++;
+                if (S[i-1] != S[j-1]) nextval[i] = j; // S[i] != S[nextval[i]]
+                else nextval[i] = nextval[j]; // S[i] == S[nextval[i]], recursive
+            } // if
+            else j = nextval[j]; // S[i-1] != S[nextval[i-1]]; S[nextval[nextval[i-1]]]
+        } // while
+    }
     
+    // 主串S, 子串T
+    int KMP_val_Index(std::string S, std::string T)
+    {
+        int i {1}; int j {1};
+        int nextval[T.length()+1];
+        nextval[0] = -1;
+        get_nextval(T, nextval);
     
-    
-    
-    
-    
-
-
-
-
-
-
-    
-
-
-
-
+        while (i <= S.length() && j <= T.length()){
+            if (j == 0 || S[i-1] == T[j-1]) { // 比较下一位
+                i++; j++;
+            }
+            else j = nextval[j];
+        } // while
+        if (j > T.length()) return i - T.length();
+        return 0;
+    }
+    \end{lstlisting}
 
 
 \end{sloppy}
