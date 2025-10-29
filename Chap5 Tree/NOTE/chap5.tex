@@ -107,6 +107,369 @@
     } BiTNode, *BiTree;
     \end{lstlisting}
 
+\subsubsection{二叉树的遍历}
+
+    二叉树遍历是寻找一种方式使得每个结点都被访问一次而且只被访问一次. \textbf{根(N), 左孩子(L), 有孩子(R)}. 常见的遍历有: 先序遍历(先根遍历), 中序遍历(中根遍历), 后序遍历(后根遍历), 层序遍历. 先中后序遍历使用递归实现, 层序遍历借助队列实现.
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{forest}
+        [A 
+            [B 
+                [D] [E]
+            ]
+            [C 
+                [F 
+                    [H][I]
+                ] [G]
+            ]
+        ]
+        \end{forest}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        先序遍历NLR: A B D E C F H I G
+
+        中序遍历LNR: D B E A H F I C G
+
+        后序遍历LRN: D E B H I F G C A
+
+        层序遍历: A B C D E F G H I
+    \end{minipage}
+    \end{center}
+
+    每个结点均访问一次且只访问一次, \textbf{时间复杂度}: $T(n) = O(n)$; \textbf{空间复杂度}: 空间复杂度与使用的递归工作栈的深度有关, $S(n) = O(h+1) = O(h)$, $h$为树的深度, 在\textbf{最坏情况下}, 树为单支树, 结点数为$n$, 树深度为$n$, 此时$S(n) = O(n)$
+
+    \newpage
+    \begin{lstlisting}[style = Cpp]
+    // 先序遍历
+    void PreOrder(BiTree T)
+    {
+        if (!T) return ; // empty node
+        visit(T);
+        PreOrder(T->lchild);
+        PreOrder(T->rchild);
+    }
+    
+    // 中序遍历
+    void InOrder(BiTree T)
+    {
+        if (!T) return ; // empty node
+        InOrder(T->lchild);
+        visit(T);
+        InOrder(T->rchild);
+    }
+    
+    // 后序遍历
+    void PostOrder(BiTree T)
+    {
+        if (!T) return ; // empty node
+        PostOrder(T->lchild);
+        PostOrder(T->rchild);
+        visit(T);
+    }
+    
+    // 层序遍历
+    void LayerOrder(BiTree T)
+    {
+        std::queue<BiTNode*> q;
+        q.push(T);
+        while (!q.empty()){
+            if (q.front()->lchild) q.push(q.front()->lchild);
+            if (q.front()->rchild) q.push(q.front()->rchild);
+            visit(q.front());
+            q.pop();
+        }
+    }
+    \end{lstlisting}
+
+\newpage
+\subsubsection{由遍历序列重建二叉树}
+
+    只给出四种遍历序列中的任意一种都不能唯一确定二叉树; 给出\textbf{中序遍历序列}和其余任意一种遍历序列, 可以唯一确定一颗二叉树. 关键在于交替使用两个对立确定根节点跟左右子树的结点, 递归逐层重建.
+
+    \textbf{先序和中序}
+
+    先序: ABCDEFGHI; 中序: BCAEDGHFI
+
+    \begin{center}
+        % new three columns
+        \begin{minipage}[t]{0.32\textwidth}
+        \vspace{0pt}
+        \begin{center}
+            1. root: A, left: BC, right: EDGHFI
+            \begin{forest}
+            [A 
+                [BC][EDGHIF]
+            ]
+            \end{forest}
+        \end{center}
+        \end{minipage}
+        \begin{minipage}[t]{0.32\textwidth}
+        \vspace{0pt}
+        \begin{center}
+            2. LEFT: root: B, right: C
+            
+            RIGHT: root: D, left: E, right: GHFI
+            \begin{forest}
+            [A 
+                [B 
+                [,draw=none][C]
+                ]
+                [D 
+                [E][GHFI]
+                ]
+            ]
+            \end{forest}
+        \end{center}
+        \end{minipage}
+        \begin{minipage}[t]{0.32\textwidth}
+        \vspace{0pt}
+        \begin{center}
+            \begin{forest}
+                [A 
+                   [B
+                        [,draw=none][C]
+                   ]
+                   [D
+                        [E]
+                        [F
+                            [G 
+                                [,draw=none][H]
+                            ]
+                            [I]
+                        ]
+                   ]
+                ]
+                \end{forest}
+        \end{center}
+        \end{minipage}
+    \end{center}
+    
+    \textbf{后序和中序}
+
+    后序: CBEHGIFDA, 中序: BCAEDGHFI
+
+    % new three columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        1. root: A, left: BC, right: EDGHFI
+
+        \begin{forest}
+        [A 
+            [BC][EDGHFI]
+        ]
+        \end{forest}
+    \end{center}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        \begin{forest}
+        [A 
+           [B 
+                [,draw=none][C]
+           ]
+           [D 
+                [E]
+                [F 
+                    [G
+                        [,draw=none] [H]
+                    ]
+                    [I]
+                ]
+           ] 
+        ]
+        \end{forest}
+    \end{center}
+    \end{minipage}
+    \end{center}
+
+    \textbf{层序和中序}
+
+    层序: ABDCEFGIH, 中序: BCAEDGHFI
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        1. root: A, left: BC, right: EDGHFI
+
+        \begin{forest}
+            [A 
+                [BC][EDGHFI]
+            ]
+        \end{forest}
+    \end{center}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        \begin{forest}
+            [A 
+               [B 
+                    [,draw=none][C]
+               ]
+               [D 
+                    [E]
+                    [F 
+                        [G
+                            [,draw=none] [H]
+                        ]
+                        [I]
+                    ]
+               ] 
+            ]
+        \end{forest}
+    \end{center}
+    \end{minipage}
+    \end{center}
+
+\newpage
+\subsection{线索二叉树}
+
+    \textbf{结点结构}\ \ \ \ 
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        lchild & ltag & data & rtag & rchild \\
+        \hline
+    \end{tabular}
+
+    约定tag域的数据: $tag = 
+    \begin{cases}
+    0, \mbox{指向该结点的孩子} \\
+    1, \mbox{指向该结点的前驱或后继}
+    \end{cases}$
+    
+    左孩子指针作为线索指向前驱, 有孩子指针作为线索指向后继
+
+    \begin{lstlisting}[style = Cpp]
+    typedef struct ThreadNode { // 线索链表
+        type data;                          // 数据域
+        struct ThreadNode *lchild, *rchild; // 左右孩子指针
+        int ltag, rtag;                     // 标志位
+    } ThreadNode, *ThreadTree;
+    \end{lstlisting}
+    
+    \textbf{线索链表}: 含有左右线索标志位的二叉链表; \textbf{线索}: 指向结点前驱和后继的指针; \textbf{线索二叉树}: 加上线索的二叉树
+
+\vspace{-0.5\baselineskip}
+\subsubsection{二叉树线索化}
+
+    \vspace{-0.7\baselineskip}
+    \textbf{线索化的特别处理} \\
+    \textbf{先序线索化}: \textbf{需要预先检查线索标志位避免循环递归}. 当前结点的左右孩子的前驱为当前结点, 在递归线索化中, 如果不预先判断左右孩子指针指向真正孩子还是前驱后继, 当孩子指向前驱时, 会进入死循环. \\
+    \textbf{中序线索化}: \textbf{置空遍历过程最后一个结点的右孩子指针}. 最后一个结点必然无右结点, 需要结束线索化后置空. \\
+    \textbf{后序线索化}: \textbf{无序特别处理}. 最后一个遍历的结点是根节点.
+
+    \begin{lstlisting}[style = Cpp]
+    // 中序线索化
+    void InThread(ThreadTree &p, ThreadTree &pre)
+    {
+        InThread(p->lchild, pre); // 递归线索化左子树
+        if (!p->lchild) { // 无左孩子, 指向前驱
+            p->lchild = pre;
+            p->ltag = 1;
+        }
+        if (pre && !pre->rchild) { // 前驱右孩子为空, 指向当前结点
+            pre->rchild = p;
+            pre->rtag = 1;
+        }
+        pre = p; // 更新上一个访问结点指针
+        InThread(p->rchild, pre); // 递归线索化右子树
+    }
+    
+    // 中序线索化主过程
+    void CreateInThread(ThreadTree &T)
+    {
+        ThreadNode *pre = nullptr;
+        if (T) {
+            InThread(T, pre);
+            pre->rchild = nullptr; // 最后一个结点必无右孩子, 特别处理
+            pre->rtag = 1;
+        }
+    }
+    \end{lstlisting}
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // 先序线索化
+            void PreThread(ThreadTree &p, ThreadTree &pre)
+            {
+                if (!p->lchild) { // 无左孩子, 指向前驱
+                    p->lchild = pre;
+                    p->ltag = 1;
+                }
+                if (pre && !pre->rchild) { // 前驱右孩子为空, 指向当前
+                    pre->rchild = p;
+                    pre->rtag = 1;
+                }
+                pre = p; // 更新指针
+                if (p->ltag == 0) PreThread(p->lchild, pre); // 检查线索标志位
+                if (p->rtag == 0) PreThread(p->rchild, pre); // 检查线索标志位
+            }
+
+            // 先序线索化主过程
+            void CreatePreThread(ThreadTree &T)
+            {
+                ThreadNode *pre = nullptr;
+                if (T) {
+                    PreThread(T, pre);
+                    pre->rchild = nullptr; // 最后一个结点必无右孩子, 特别处理
+                    pre->rtag = 1; 
+                }
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // 后序线索化
+            void PostThread(ThreadTree &p, ThreadTree &pre)
+            {
+                PostThread(p->lchild, pre);
+                PostThread(p->rchild, pre);
+                if (!p->lchild) { // 无左孩子, 指向前驱
+                    p->lchild = pre;
+                    p->ltag = 1;
+                }
+                if (pre && !pre->rchild) { // 前驱无右孩子, 指向当前
+                    pre->rchild = p;
+                    pre->rtag = 1;
+                }
+                pre = p;
+            }
+
+            // 后序线索化主过程
+            void CreatePOstThread(ThreadTree &T)
+            {
+                ThreadNode *pre = nullptr;
+                if (T) {
+                    PostThread(T, pre); // 后序遍历最后一个结点是根节点, 不用特别处理
+                }
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+
+\subsubsection{线索二叉树的遍历}
+
+    
+    
+    
+    
+
+
+
+
 
 
     
