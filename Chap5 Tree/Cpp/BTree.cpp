@@ -61,12 +61,25 @@ void InOrder(BiTree);
 void PostOrder(BiTree);
 void LayerOrder(BiTree);
 void visit(BiTNode *);
+void visit(ThreadNode *);
 void InThread(ThreadTree &, ThreadTree &);
 void CreateInThread(ThreadTree &);
 void PreThread(ThreadTree &, ThreadTree &);
 void CreatePreThread(ThreadTree &);
 void PostThread(ThreadTree &, ThreadTree &);
 void CreatePOstThread(ThreadTree &);
+ThreadNode* InFirstNode(ThreadTree);
+ThreadNode* InNextNode(ThreadNode *);
+ThreadNode* InPrevNode(ThreadNode *);
+void InOrder(ThreadTree);
+ThreadNode* PreFirstNode(ThreadTree);
+ThreadNode* PreNextNode(ThreadNode *);
+ThreadNode* PrePrevNode(ThreadNode *);
+void PreOrder(ThreadTree);
+ThreadNode* postFirstNode(ThreadTree);
+ThreadNode* PostNextNode(ThreadNode *);
+ThreadNode* PostPrevNode(ThreadNode *);
+void PostOrder(ThreadTree);
 
 int main()
 {
@@ -87,6 +100,12 @@ void visit(BiTNode *node)
 {
     std::cout << node->data << " ";
 }
+
+void visit(ThreadNode *node)
+{
+    std::cout << node->data << " ";
+}
+
 
 // 先序遍历
 void PreOrder(BiTree T)
@@ -207,3 +226,50 @@ void CreatePOstThread(ThreadTree &T)
         PostThread(T, pre); // 后序遍历最后一个结点是根节点, 不用特别处理
     }
 }
+
+// 中序序列第一个结点
+ThreadNode* InFirstNode(ThreadTree p)
+{
+    if (!p) return nullptr;
+    // 寻找最左下结点
+    while (p->ltag == 0) p = p->lchild;
+    return p;
+}
+
+// 中序后继
+ThreadNode* InNextNode(ThreadNode *p)
+{
+    if (!p) return nullptr;
+    if (p->rtag == 0) return InFirstNode(p->rchild);
+    return p->rchild;
+}
+
+// 中序前驱
+ThreadNode* InPrevNode(ThreadNode *p)
+{
+    if (!p) return nullptr;
+    if (p->ltag == 1) return p->lchild;
+    p = p->lchild; // 左子树的最右下结点
+    while (p->rtag == 0) p = p->rchild;
+    return p;
+}
+
+// 中序遍历
+void InOrder(ThreadTree T)
+{
+    ThreadNode *p = InFirstNode(T);
+    while (p) {
+        visit(p);
+        p = InNextNode(p);
+    }
+}
+
+
+ThreadNode* PreFirstNode(ThreadTree);
+ThreadNode* PreNextNode(ThreadNode *);
+ThreadNode* PrePrevNode(ThreadNode *);
+void PreOrder(ThreadTree);
+ThreadNode* postFirstNode(ThreadTree);
+ThreadNode* PostNextNode(ThreadNode *);
+ThreadNode* PostPrevNode(ThreadNode *);
+void PostOrder(ThreadTree);

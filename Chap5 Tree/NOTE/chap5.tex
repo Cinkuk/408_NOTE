@@ -460,8 +460,80 @@
     \end{minipage}
     \end{center}
 
+    \textbf{带头结点的线索二叉树}: 额外定义一个头结点. 其前驱指向树的根节点, 其后继指向最后一个遍历的结点; 最后一个遍历的结点的右孩子指向头结点, 第一个遍历的结点的左孩子指向头结点. 带头结点的线索二叉树类似于双向循环链表, 允许从树中任一结点开始, 向后或者向前遍历整棵树.
+
+\newpage
+\subsubsection{非线索二叉树的遍历}
+
+    \textbf{中序遍历} \\
+    \textbf{后继}: 右子树的最左下结点 \\
+    \textbf{前驱}: 左子树的最右下结点
+
+    \textbf{先序遍历} \\
+    \textbf{后继}: (a) 有左孩子: 左孩子; (b) 无左孩子: 右孩子 \\
+    \textbf{前驱}: 需要先找到双亲结点p. \\
+    (a) 当前结点为左孩子: p; \\
+    (b) 当前为右孩子: (b1) p无左孩子: p ;(b2) p有左孩子: p左子树的最右下结点
+
+    \textbf{后序遍历} \\
+    \textbf{后继}: 需要先找到双亲结点p. \\
+    (a) 当前是p的左孩子: (a1) 若p有右孩子: p右子树的最左下结点; (a2) p无右孩子: p \\
+    (b) 当前是p的右孩子: p \\
+    \textbf{前驱}: (a) 有右孩子: 右孩子; (b) 无右孩子: 左孩子
+    
 \subsubsection{线索二叉树的遍历}
 
+    先序和后序需要寻找双亲结点, 一般使用带双亲指针的三叉链表实现, 在二叉链表中实现复杂, 不予考虑.
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+        // 中序序列第一个结点
+        ThreadNode* InFirstNode(ThreadTree p)
+        {
+            if (!p) return nullptr;
+            // 寻找最左下结点
+            while (p->ltag == 0) p = p->lchild;
+            return p;
+        }
+        
+        // 中序后继
+        ThreadNode* InNextNode(ThreadNode *p)
+        {
+            if (!p) return nullptr;
+            if (p->rtag == 0) return InFirstNode(p->rchild);
+            return p->rchild;
+        }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+        // 中序前驱
+        ThreadNode* InPrevNode(ThreadNode *p)
+        {
+            if (!p) return nullptr;
+            if (p->ltag == 1) return p->lchild;
+            p = p->lchild; // 左子树的最右下结点
+            while (p->rtag == 0) p = p->rchild;
+            return p;
+        }
+        
+        // 中序遍历
+        void InOrder(ThreadTree T)
+        {
+            ThreadNode *p = InFirstNode(T);
+            while (p) {
+                visit(p);
+                p = InNextNode(p);
+            }
+        }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
     
     
     
