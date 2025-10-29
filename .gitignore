@@ -13,3 +13,4 @@ elegantnote-en.tex
 
 /.vscode
 *.pdf
+!DS.pdf
