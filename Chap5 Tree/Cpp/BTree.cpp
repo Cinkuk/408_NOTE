@@ -273,3 +273,15 @@ ThreadNode* postFirstNode(ThreadTree);
 ThreadNode* PostNextNode(ThreadNode *);
 ThreadNode* PostPrevNode(ThreadNode *);
 void PostOrder(ThreadTree);
+
+#define MAX_TREE_SIZE 120
+
+typedef struct {
+    type data;      // 数据元素
+    int parant;     // 伪指针, 指向双亲
+} PTNode;
+
+typedef struct {
+    PTNode nodes[MAX_TREE_SIZE];  // 存储结点
+    int n;                        // 结点数
+} PTree;

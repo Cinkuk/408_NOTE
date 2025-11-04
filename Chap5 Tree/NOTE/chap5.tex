@@ -534,10 +534,283 @@
     \end{minipage}
     \end{center}
     
+\subsection{树与森林}
+
+\subsubsection{树的存储结构}
+
+    树能够使用顺序存储结构和链式存储结构, 但必须能够唯一地表示出树中各结点的逻辑关系(由于一棵树的结点数量不确定, 只存储数据不存储逻辑关系, 不能够连接各结点)
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.35\columnwidth]{./tree.png} 
+    \end{figure}
+    
+    
+
+    \textbf{双亲表示法}
+
+    \textbf{顺序存储}, 使用一组连续空间来存储每个结点, 在每个结点中设置一个\textbf{伪指针}, 指向\textbf{其双亲结点在数组中的位置}. 根节点的伪指针域为\textbf{-1}.
+
+    在\textbf{存储森林}时, 将每棵树根节点的parent设为-1即可.
+
+    优点: 找双亲快; 缺点: 找孩子不方便, 只能遍历整棵树. 适用于寻找双亲多, 寻找孩子少的情景.
+
+    \begin{lstlisting}[style = Cpp]
+    typedef struct {
+        type data;      // 数据元素
+        int parant;     // 伪指针, 指向双亲
+    } PTNode;
+    
+    typedef struct {
+        PTNode nodes[MAX_TREE_SIZE];  // 存储结点
+        int n;                        // 结点数
+    } PTree;
+    \end{lstlisting}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.45\columnwidth]{./parent.png}
+    \end{figure}
+    
+    \newpage
+    \textbf{孩子表示法}
+
+    混合使用\textbf{顺序存储和链式存储}. 每个结点均存入线性表, 每个结点的直接后继以单链表的形式存在双亲结点之后. n个结点有n个孩子链表, 叶结点的孩子链表为空表. n个头指针组成一个单链表. 
+
+    \textbf{存储森林}时, 需要在将结构体中封装记录全部根节点位置的成员.
+
+    优缺点与双亲相反: 优点: 寻找孩子非常方便; 缺点: 寻找双亲需要遍历n个结点中孩子链表指向的n个孩子链表结点. 适用于寻找孩子多, 寻找双亲少的场景.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.35\columnwidth]{./children.png}
+    \end{figure}
+
+    \textbf{孩子兄弟表示法(二叉树表示法)}
+
+    以\textbf{二叉链表}作为树的存储结构. \textbf{结点组成: 结点值, 指向结点第一个孩子的指针, 指向结点下一个兄弟结点的指针}.
+
+    优点: 可以方便实现树转换为二叉树的操作, 易于查找节点的孩子等; 缺点: 从当前结点查找双亲结点比较麻烦. 若增设指向双亲结点的指针parent, 查找双亲结点也会很方便.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.3\columnwidth]{./childbro.png}
+    \end{figure}
+    
+\newpage
+\subsubsection{树转换为二叉树}
+
+    \textbf{左孩子, 右兄弟}. 每个结点左指针指向第一个孩子, 右指针指向下一个兄弟. 转换时可以逐层处理以防遗漏.
+
+    \begin{forest}
+    [A 
+            [B 
+                [E][F]
+            ]
+            [C]
+            [D
+                [,draw=none][G]
+            ]
+    ]
+    \end{forest}
+    $\iff$
+    \begin{forest}
+    [A 
+        [B
+            [EF]
+            [C 
+                []
+                [D
+                    [G][]
+                ]
+            ]
+        ]
+        [,draw=none]
+    ]
+    \end{forest}
+    $\iff$
+    \begin{forest}
+    [A 
+        [B
+            [E
+                [][F]
+            ]
+            [C 
+                []
+                [D
+                    [G][]
+                ]
+            ]
+        ]
+        [,draw=none]
+    ]
+    \end{forest}
+
+\subsubsection{森林与二叉树互相转换}
+
+    \textbf{森林转换为二叉树} \\
+    (1) 森林中每棵树转换为二叉树 \\
+    (2) 每棵树的根视为兄弟关系, 合并二叉树
+
+    \textbf{二叉树转换为森林} \\
+    (1) 将根节点和根节点左子树单独取出, 断开右指针. 所取出的部分为第一颗树 \\
+    (2) 对剩余部分重复步骤(1), 直到只剩下一颗不存在右子树的二叉树 \\
+    (3) 将分离出的二叉树转换为树
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.32\textwidth}
+            \begin{forest}
+            [A 
+                [B][C][D]
+            ]
+            \end{forest}
+            \begin{forest}
+            [E 
+                [F]
+            ]
+            \end{forest}
+            \begin{forest}
+            [G 
+                [H][I]
+            ]
+            \end{forest}
+            \caption{森林}
+        \end{subfigure}
+        \begin{subfigure}{0.32\textwidth}
+            \begin{forest}
+            [A 
+                [B
+                        [][C 
+                                [][D]
+                            ]
+                ]
+                []
+            ]
+            \end{forest}
+            \begin{forest}
+            [E 
+                [F][]
+            ]
+            \end{forest}
+            \begin{forest}
+            [G 
+                [H
+                    [][I]
+                ]
+                []
+            ]
+            \end{forest}
+            \caption{各自转换为二叉树}
+        \end{subfigure}
+        \begin{subfigure}{0.32\textwidth}
+            \begin{forest}
+            [A 
+                [B
+                    [][C 
+                        [][D]
+                        ]
+                ]
+                [E 
+                    [F]
+                    [G
+                        [H
+                            [][I]
+                        ]
+                        []
+                    ]
+                ]
+            ]
+            \end{forest}
+            \caption{合并为二叉树}
+        \end{subfigure}
+        
+    \end{figure}
+    
+\newpage
+\subsubsection{树的遍历}
+
+    \begin{forest}
+        [A 
+            [B 
+                [E][F]
+            ]
+            [C]
+            [D
+                [,draw=none][G]
+            ]
+        ]
+    \end{forest}
+
+    \textbf{先根遍历}, 遍历序列与\textbf{二叉树的先序遍历}序列相同 \\
+    (1) 访问根节点; \\
+    (2) 依照顺序访问每课子树, 子树访问顺序依然为先根后子树
+
+    遍历序列: ABEFCDG
+
+    \textbf{后根遍历}, 遍历序列与\textbf{二叉树的中序遍历}序列相同 \\
+    LNR, 全部子树在根节点的左子树; 在根节点的左孩子中, 本身与左子树为第一颗子树, 其第一个右孩子及其左子树为第二颗子树, 其第二个右孩子及其左子树为第三棵树 \dots) \\
+    (1) 依次遍历每棵子树, 遍历时遵循先子树后根结点的顺序; \\
+    (2) 访问根节点
+
+    遍历序列: EFBCGDA
+
+    \textbf{层次遍历}: 按照层序依次访问各结点
+
+    遍历序列: ABCDEFG
+
+\vspace{-1\baselineskip}
+\subsubsection{森林的遍历}
+
+    \begin{forest}
+        [A 
+            [B][C][D]
+        ]
+        \end{forest}
+        \begin{forest}
+        [E 
+            [F]
+        ]
+        \end{forest}
+        \begin{forest}
+        [G 
+            [H][I]
+        ]
+    \end{forest}
+
+    \textbf{先序遍历森林}, 等同于对每棵树依次进行先根遍历, 或对应二叉树的先序遍历 \\
+    (1) 访问森林中第一棵树的根节点; \\
+    (2) 先序访问第一棵树中根节点的子树森林; \\
+    (3) 先序访问除第一棵树外剩余树构成的森林
+
+    遍历序列: ABCDEFGHI
+
+    \textbf{中序遍历森林}, 等同于对每棵树依次进行后根遍历, 或对应二叉树的中序遍历 \\
+    (1) 中序遍历第一棵树根节点的子树森林; \\
+    (2) 访问第一棵树的根节点; \\
+    (3) 中序遍历除第一棵树外剩余树构成的子树森林
+
+    遍历序列: BCDAFEHIG
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            树 & 森林 & 对应二叉树 \\
+            \hline
+            先根遍历 & 先序遍历 & 先序遍历 \\
+            \hline
+            后根遍历 & 中序遍历 & 中序遍历 \\
+            \hline
+        \end{tabular}
+    \end{center}
     
     
     
+
+
     
+
+
 
 
 
