@@ -7,12 +7,23 @@
     树的定义是 \textbf{递归}的; 树的根节点没有前驱, 其余结点有且仅有一个前驱; 树中所有结点都可以有零个或多个后继. 树用于表示具有\textbf{层次结构}的数据.
 
     \textbf{基本术语} \\
-    \textbf{祖先}: 结点K的祖先是从根节点到K路径上所有其他结点; \textbf{子孙}: A是B的祖先, B是A的子孙; \textbf{双亲}: 全部祖先中最接近结点的祖先; \textbf{孩子}: A是B的祖先, B是A的孩子; \textbf{兄弟}: 具有相同双亲的结点; \textbf{堂兄弟}: 双亲在同一层的结点(一般用于指代有几个结点在同一层) \\
-    \textbf{结点的层次}: 根节点是第1层, 其孩子是第2层, 从上往下数以此类推; \textbf{结点的深度}: 结点所在的层次; \textbf{树的高度(深度)}: 树中结点的最大层数; \textbf{结点的高度}: 以该节点为根节点的子树的高度(从下往上数) \\
-    \textbf{结点的度}: 一个结点的孩子个数; \textbf{树的度}: 树中结点的最大度数 \\
-    \textbf{分支节点(非终端结点)}: 度大于0的结点; \textbf{叶子结点(终端结点)}: 度为0的结点 \\
-    \textbf{有序树}: 树中各个结点的各个子树从左到右有次序, 不能互换; \textbf{无序树}: 树中结点的各子树可以互换左右次序 \\
-    \textbf{路径}: 由两个结点之间经过的结点序列(EX. A到B的路径A->C->D->B). 只能从上到下, 有向边. \textbf{路径长度}: 路径上所经过的边的个数; \textbf{树的路径长度}: 分为 \textbf{内部路径长度IPL}: 所有结点的深度之和; 和 \textbf{外部路径长度}: 所有叶子结点的深度之和
+    \textbf{祖先}: 结点K的祖先是从根节点到K路径上所有其他结点; 
+    \textbf{子孙}: A是B的祖先, B是A的子孙; \\
+    \textbf{双亲}: 全部祖先中最接近结点的祖先; 
+    \textbf{孩子}: A是B的祖先, B是A的孩子; 
+    \textbf{兄弟}: 具有相同双亲的结点; \\
+    \textbf{堂兄弟}: 双亲在同一层的结点(一般用于指代有几个结点在同一层) \\
+    \textbf{结点的层次}: 根节点是第1层, 其孩子是第2层, 从上往下数以此类推; \\
+    \textbf{结点的深度}: 结点所在的层次; \textbf{树的高度(深度)}: 树中结点的最大层数; \\
+    \textbf{结点的高度}: 以该节点为根节点的子树的高度(从下往上数); \textbf{结点的度}: 一个结点的孩子个数; \\
+    \textbf{树的度}: 树中结点的最大度数
+    \textbf{分支节点(非终端结点)}: 度大于0的结点; \\
+    \textbf{叶子结点(终端结点)}: 度为0的结点 
+    \textbf{有序树}: 树中各个结点的各个子树从左到右有次序, 不能互换; \\
+    \textbf{无序树}: 树中结点的各子树可以互换左右次序 \\
+    \textbf{路径}: 由两个结点之间经过的结点序列(EX. A到B的路径A->C->D->B). 只能从上到下, 有向边. \\
+    \textbf{路径长度}: 路径上所经过的边的个数; \\
+    \textbf{树的路径长度}: 分为 \textbf{内部路径长度IPL}: 所有结点的深度之和; 和 \textbf{外部路径长度}: 所有叶子结点的深度之和
 
     \textbf{数值特征}: 
 
@@ -534,6 +545,7 @@
     \end{minipage}
     \end{center}
     
+\newpage
 \subsection{树与森林}
 
 \subsubsection{树的存储结构}
@@ -803,6 +815,114 @@
             \hline
         \end{tabular}
     \end{center}
+
+\newpage
+\subsection{哈夫曼树(最优二叉树)与哈夫曼编码}
+
+    \textbf{结点的权}: 树中结点被赋予的有意义的一个值; \\
+    \textbf{结点的带权路径长度}: 从树的根到该结点的 \verb|路径长度| 与 \verb|结点的权| 的乘积 \\
+    \textbf{树的带权路径长度(WPL)}: 树中所有 \verb|叶结点| 的 \verb|带权路径长度| 之和
+
+    \textbf{哈夫曼树(最优二叉树)}: 对于拥有$n$个带权叶结点的二叉树中, WPL最小的二叉树称为哈夫曼树.
+
+    对于相同的$n$个带权叶结点, \textbf{哈夫曼树不唯一, 但是WPL一定相同}. 哈夫曼树对负权重结点依然适用
+
+    \textbf{构造哈夫曼树}:
+
+    不断在森林中取出当前权值最小的两棵树, 将其结点权重相加作为新树根节点的权重, 所选取的两棵树分别作为新树的左右子树, 将新树加入森林, 直至森林只剩下一棵树: \\
+    (1) 将$n$个结点作为$n$棵只含有一个结点的二叉树, 构成森林$F$ \\
+    (2) 构造一个新结点, 从$F$选择权值最小的两棵树分别作为新节点的左右子树; 令新结点的权值为两棵子树根节点权值之和 \\
+    (3) 在$F$中删除所选择的两棵树, 并将新树加入到$F$ \\
+    (4) 重复(2)(3), 直至$F$中只剩下一棵树
+
+    \textbf{哈夫曼树特性}: \\
+    1. 权值越小的结点到根节点的路径长度越大 \\
+    2. 每个最初的结点最终都成为叶结点 \\
+    3. 每次都选择两棵子树, 因此, 新建了$n-1$个结点, 结点总数为$2n-1$; 且不存在度为1的结点, 结点只为0或2
+
+    \textbf{哈夫曼编码}
+
+    哈夫曼编码属于\textbf{可变长度编码}, 即对不同字符使用不等长的二进制编码表示. 该编码对频率高的字符赋予短编码, 对频率低的字符赋予长编码. 可以减少字符平均编码, 以达到压缩数据的目的. 此外, \textbf{固定长度编码}: 每个字符用相等的二进制编码表示. 若使用定长编码, 要求所有字符结点在同一层.
+
+    此外, 哈夫曼编码属于\textbf{前缀编码}, 即没有一个编码是另一个编码的前缀. 若要确定字符集是否为前缀编码, 即寻找是否存在不符合前缀编码规则的编码: 在同一棵树上操作, 对每一个字符序列, 0则移动到左孩子, 1则移动到右孩子, 不存在现成结点则创建, 当结束本序列遍历时, 若停留在分支结点或解码的路径在此前已存在, 则为非前缀编码.
+
+    构造哈夫曼编码时, 将字符出现频次作为结点的权值, 依次构造哈夫曼树, 并约定边的值为左0右1(左1右0也可以); 解码时, 按照编码序列寻找对应结点.
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        \begin{forest}
+            for tree={
+                circle, draw,
+                minimum size=0.5cm,
+                font=\small,
+                s sep=1cm
+            }
+            [
+                [A, edge label={node[midway, left]{0}}]
+                [ , edge label={node[midway, right]{1}}
+                    [B, edge label={node[midway, left]{0}}]
+                    [, edge label={node[midway, right]{1}}
+                        [C, edge label={node[midway, left]{0}}]
+                        [D, edge label={node[midway, right]{1}}]
+                    ]
+                ]
+            ]
+        \end{forest}
+    \end{center}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        编码: A(0), B(10), C(110), D(111)
+    \end{center}
+    \end{minipage}
+    \end{center}
+
+    \newpage
+    \textbf{计算压缩率}
+
+    假设存在字符集, \verb|字符(出现频次)|如下: a(45), b(13), c(12), d(16), e(9), f(5). 所构造的哈夫曼树如下: 
+
+    \begin{forest}
+        for tree={
+        circle, draw,
+        minimum size=0.5cm,
+        font=\small,
+        s sep=1cm
+        }
+        [100, edge label={node[midway, left]{0}}
+            [a:45, edge label={node[midway, left]{0}}]
+            [55, edge label={node[midway, right]{1}}
+                [25, edge label={node[midway, left]{0}}
+                    [c:12, edge label={node[midway, left]{0}}]
+                    [b:13, edge label={node[midway, right]{1}}]
+                ]
+                [30, edge label={node[midway, right]{1}}
+                    [14, edge label={node[midway, left]{0}}
+                        [f:5, edge label={node[midway, left]{0}}]
+                        [e:9, edge label={node[midway, right]{1}}]
+                    ]
+                    [d:16, edge label={node[midway, right]{1}}
+                    ]
+                ]
+            ]
+        ]
+    \end{forest}
+
+    哈夫曼编码: a(0), b(101), c(100), d(111), e(1101), f(1100)
+
+    定长编码: a(000), b(001), c(010), d(011), e(100), f(101)
+
+    哈夫曼编码需要的存储空间, 即$WPL = 1 \times 45 + 3 \times (12 + 13 + 16) + 4 \times (5 + 9) = 224$
+
+    定长编码所需存储空间: $3 * (45 + 13 + 12 + 16 + 9 + 5) = 300$
+
+    压缩率: $\frac{300 - 224}{300} = 25 \%$
+    
+    
     
     
     
