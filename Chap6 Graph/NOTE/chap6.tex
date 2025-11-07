@@ -1,0 +1,113 @@
+\documentclass[../../DS]{subfiles}
+
+\begin{document}
+\begin{sloppy}
+    
+\section{图}
+
+    \textbf{基本定义} \\
+    数学定义: 图$G$由顶点$V$和边$E$组成, 记为$G=(V, E)$. $V(G)$表示$G$中顶点的非空子集, $E(G)$表示$G$的边. $V = \{v_1, v_2, \dots\}$, $E = \{(u, v) | u \in V, v \in V\}$. \textbf{图的顶点数(图的阶数)}: $|V|$, \textbf{图的边数}: $|E|$ \\
+    图不可以是空图, 图\textbf{至少有一个结点}. 顶点集$V$一定非空, 边集\textbf{可以为空} \\
+    \textbf{弧}: 有向边, 顶点的有序对, 记为$<v, w>$, $v \to w$, \textbf{弧尾}: $v$, \textbf{弧头}: $w$. 称: $<v, w>$为v到w的弧, 或$v$ 邻接\textbf{到} $w$ \\
+    \textbf{边}: 无向边. 记为$(v, w)$或者$(w, v)$. $v, w$互为 \textbf{邻接点}, 称: 边$(v, w)$依附于w和v, 或者边$(v, w)$与$v, w$相关联 \\
+    \textbf{简单图(存在有向无向之分)}: 1. 不存在重复边; 2. 不允许顶点到自身的边 \\
+    \textbf{复杂图}: 存在重复边或者存在顶点到自身的边 \\
+    \textbf{顶点的度}: \\
+    \textbf{无向图}: 顶点$v$的度是依附于$v$的边的数量, 记为$TD(v)$. \textbf{无向图}全部顶点的度之和为边数的2倍(一条边连接两个顶点), 即$\sum\limits_{i=1}^{n}TD(v_i) = 2 |E|$ \\
+    \textbf{有向图}: 区分\textbf{入度}, \textbf{出度}, \textbf{度}. \\
+    \textbf{入度}: 以$v$为终点的边的数量, 记作$ID(v)$. \textbf{出度}: 以$v$为起点的边的数量, 记作$OD(v)$. \\
+    \textbf{度}: 入度与出度之和, 记作$TD(v) = ID(v) + OD(v)$. 有向图中: $\sum\limits_{i=1}^{n}ID(v_i) = \sum\limits_{i=1}^{n}OD(v_i) = |E|$ \\
+    \textbf{路径}: 顶点$v_p$到$v_q$之间的序列$v_p, v_1, v_2, \dots, v_q$ \\
+    \textbf{路径长度}: 路径上边的数目 \\
+    \textbf{回路(环)}: 首末顶点相同的路径. 若一个图有$n$个顶点, 有多于$n-1$条边, 则该图\textbf{一定有环} \\
+    \textbf{简单路径}: 顶点不重复出现的路径 \\
+    \textbf{简单回路}: 除了首末顶点之外, 其他顶点不重复出现的回路 \\
+    \textbf{距离(区分有向无向)}: 从$u$\textbf{到}$v$的\textbf{最短}路径长度. 若$u, v$之间不存在路径, 则距离为无穷$\infty$ \\
+    \textbf{子图}: 若$G = (V, E), G' = (V', E')$, $V'$是$V$的子集, $E'$是$E$的子集, 则$G'$是$G$的子图. 若要构成子图, 则$E'$涉及的顶点必须全在$V'$中, 否则不构成图, 因此, 不是VE的任何子集都能构成G的子图 \\
+    \textbf{生成图}: $G'$是$G$的子图, 且$V(G') = V(G)$, 即子图包含原图的全部顶点 \\
+    \textbf{连通}: \textbf{无向图中}, 顶点v和w之间存在\textbf{路径}. \\
+    \textbf{连通图}: 无向图中任意两个顶点都是连通的; \textbf{非连通图}: 不是连通图的无向图. \textbf{极大连通子图(连通分量)}: 1. 连通图; 2. 包含尽可能多的顶点和边(\textbf{不能被任何另外一个连通子图所包含}) \\
+    对于有$n$个顶点的无向图, 若为\textbf{连通图}, \textbf{最少有} n-1条边(一个顶点连接所有); 若保证为\textbf{非连通图}, \textbf{最多有} $\binom{n-1}{2}$条边(n-1个顶点两两相连, 孤立一个顶点) \\
+    \textbf{强连通}: \textbf{有向图}中, 对于顶点v, w, 从v到w和从w到v的路径都存在(不一定有$<v, w>$或$<w, v>$), 则称这两个顶点强连通 \\
+    \textbf{强连通图}: 有向图中, 任意两个顶点都是强连通的 \\
+    \textbf{强连通分量}: 1. 强连通图; 2. 包含尽可能多的顶点和边. 若一个图是强连通图, \textbf{最少有}n条边(构成环) \\
+    \textbf{生成树}: \textbf{连通图}中包含图中全部顶点的一个\textbf{极小连通子图}. 1. 包含全部顶点; 2. 边尽可能少. n个顶点的图, 其生成树只能有n-1条边. 生成树可能有多个 \\
+    \textbf{生成森林}: \textbf{非连通图}中, 连通分量的生成树构成非连通图的生成森林 \\
+    \textbf{边的权值}: 每条边都可以标注的有意义的数值 \\
+    \textbf{网(带权图)}: 边有权值的图 \\
+    \textbf{带权路径长度}: 路径上所有边的权值之和 \\
+    \textbf{完全图(简单完全图)}: 对于n个顶点的\textbf{无向图}, 有$\binom{n}{2} =  \frac{n(n-1)}{2}$条边的图(任意两个顶点之间有边); 对于n个顶点的\textbf{有向图}, 有$2 \binom{n}{2} = n(n-1)$条边的图(任意两个顶点之间有方向相反的两条边). n个顶点, 无向图, 边的条数$\in[0, \binom{n}{2}]$; 有向图, 边的条数$[0, n(n-1)]$ \\
+    \textbf{稠密图}: 边很多的图; \textbf{稀疏图}: 边很少的图. 一般, 满足$|E| < |V| \log_2 |V|$可视为稀疏图(没有绝对的判断标准) \\
+    \textbf{有向树}: 一个顶点的入度为0, 其余顶点的入度均为1的有向图(不是强连通图) \\
+    \textbf{树}: 1. 无向图; 2. 不存在回路; 3. 连通; 
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\columnwidth]{./graphconnect.png}
+    \end{figure}
+
+    \textbf{找强连通分量} \\
+    1. 分离出孤立顶点 \\
+    2. 分离出没有出度的顶点和与其相连的边 \\
+    3. 分离出没有入度的顶点和与其相连的边
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.45\textwidth}
+            \begin{tikzpicture}[node distance=1.5cm, , >=Stealth]
+                \tikzstyle{vertex}=[circle, draw, minimum size=0.5cm]
+            
+                \node[vertex] (A) {A};
+                \node[vertex, below right of=A] (D) {D};
+                \node[vertex, above right of=D] (C) {C};
+                \node[vertex, below left of=D] (B) {B};
+                \node[vertex, below right of=D] (E) {E};
+                \node[vertex, below left of=A] (F) {F};
+                \node[vertex, below right of=C] (G) {G};
+                
+                \draw[->] (A) to[bend left=20] (C);
+                \draw[->] (C) to[bend left=20] (A);
+                \draw[->] (B) -- (A);
+                \draw[->] (D) -- (A);
+                \draw[->] (C) -- (D);
+                \draw[->] (D) -- (E);
+                \draw[->] (E) -- (C);
+                \draw[->] (B) -- (D);
+                \draw[->] (B) -- (E);
+                \draw[->] (C) -- (G);
+                \draw[->] (E) -- (G);
+            \end{tikzpicture}
+            \caption{有向图}
+        \end{subfigure}
+        \begin{subfigure}{0.45\textwidth}
+            \begin{tikzpicture}[node distance=1.5cm, , >=Stealth]
+                \tikzstyle{vertex}=[circle, draw, minimum size=0.5cm]
+                
+                \node[vertex] (A) {A};
+                \node[vertex, below right of=A] (D) {D};
+                \node[vertex, above right of=D] (C) {C};
+                \node[vertex, below right of=D] (E) {E};
+                \node[vertex, below left of=A] (F) {F};
+                \node[vertex, below right of=C] (G) {G};
+                \node[vertex, right of=G] (B) {B};
+
+                \draw[->] (A) to[bend left=20] (C);
+                \draw[->] (C) to[bend left=20] (A);
+                \draw[->] (D) -- (A);
+                \draw[->] (C) -- (D);
+                \draw[->] (D) -- (E);
+                \draw[->] (E) -- (C);
+            \end{tikzpicture}
+            \caption{4个强连通分量}
+        \end{subfigure}
+    \end{figure}
+    
+    
+        
+
+
+
+
+
+\end{sloppy}
+\end{document}
