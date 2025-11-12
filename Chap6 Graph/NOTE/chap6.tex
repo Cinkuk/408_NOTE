@@ -35,7 +35,10 @@
     \textbf{生成森林}: \textbf{非连通图}中, 连通分量的生成树构成非连通图的生成森林 \\
     \textbf{边的权值}: 每条边都可以标注的有意义的数值 \\
     \textbf{网(带权图)}: 边有权值的图 \\
-    \textbf{带权路径长度}: 路径上所有边的权值之和 \\
+    \textbf{带权路径长度}: 路径上所有边的权值之和
+    
+    \newpage
+    \noindent
     \textbf{完全图(简单完全图)}: 对于n个顶点的\textbf{无向图}, 有$\binom{n}{2} =  \frac{n(n-1)}{2}$条边的图(任意两个顶点之间有边); 对于n个顶点的\textbf{有向图}, 有$2 \binom{n}{2} = n(n-1)$条边的图(任意两个顶点之间有方向相反的两条边). n个顶点, 无向图, 边的条数$\in[0, \binom{n}{2}]$; 有向图, 边的条数$[0, n(n-1)]$ \\
     \textbf{稠密图}: 边很多的图; \textbf{稀疏图}: 边很少的图. 一般, 满足$|E| < |V| \log_2 |V|$可视为稀疏图(没有绝对的判断标准) \\
     \textbf{有向树}: 一个顶点的入度为0, 其余顶点的入度均为1的有向图(不是强连通图) \\
@@ -101,10 +104,275 @@
             \caption{4个强连通分量}
         \end{subfigure}
     \end{figure}
-    
-    
-        
 
+\subsection{图的存储}
+
+\subsubsection{邻接矩阵法}
+
+    顺序存储. 用一个一维数组存储图中顶点的信息, 用一个二维数组存储图中边的信息, 其中, 二维数组称为\textbf{邻接矩阵}. 在简单应用中, 可以忽略一维数组, 不存储顶点信息. 邻接矩阵的空间复杂度为$O(|V|^2)$. \textbf{稠密图}适合使用邻接矩阵 
+    图中, 顶点自身与自身不认为有边连接. 记有n个顶点的图之顶点为$v_1, v_2, \dots, v_n$
+
+    \textbf{非带权图}
+    
+    % new two columns
+    \vspace{-2\baselineskip}
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        $
+        A[i][j] = \begin{cases}
+            1, <v_i, v_j>\mbox{或}(v_i, v_j)\mbox{是图中的边} \\
+            0, <v_i, v_j>\mbox{或}(v_i, v_j)\mbox{不是图中的边} \\
+        \end{cases}
+        $
+    \end{center}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        注意i, j的先后关系在有向图中不可以对换. \textbf{有向图}中 \verb|A[i][j]|是边 \verb|i->j|. \textbf{无向图}中, 邻接矩阵是一个\textbf{唯一的}对称矩阵(上下三角压缩存储)
+    \end{minipage}
+    \end{center}
+
+    \vspace{-1\baselineskip}
+    \textbf{带权图}
+
+    % new two columns
+    \vspace{-2\baselineskip}
+    \begin{center}
+    \begin{minipage}[t]{0.53\textwidth}
+    \vspace{0pt}
+    \begin{center}
+        $
+        A[i][j] = \begin{cases}
+            w_{ij}, <v_i, v_j>\mbox{或}(v_i, v_j)\mbox{是图中的边} \\
+            0 \mbox{或} \infty, <v_i, v_j>\mbox{或}(v_i, v_j)\mbox{不是图中的边} \\
+        \end{cases}
+        $
+    \end{center}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        1. $\infty$可以定义为 \verb|MAXINT|; 2. 部分情况下, 自身与自身(对角线): 0, 无边: $\infty$
+    \end{minipage}
+    \end{center}
+
+    \newpage
+    \textbf{数据结构}
+    \begin{lstlisting}[style = Cpp]
+    struct MGgraph {
+        VertexType vex[MaxVertexNum];                 // 顶点表
+        EdgeType edge[MaxVertexNum][MaxVertexNum];    // 邻接矩阵(边表)
+        int vexnum, arcnum;                           // 图当前的顶点数和边数
+    };
+    \end{lstlisting}
+
+    \vspace{-0.5\baselineskip}
+    \textbf{邻接矩阵有关计算} \\
+    1. \textbf{无向图}: 顶点的度$TD(v_i)$为矩阵中第$i$行或者第$i$列非零($\infty$)元素的个数 \\
+    2. \textbf{有向图}: 顶点$v_i$的\textbf{入度}$ID(v_i)$为第$i$\textbf{列}非零($\infty$)元素的个数; \textbf{出度}$OD(v_i)$为第$i$\textbf{行}非零($\infty$)元素的个数 \\
+    3. 设图$G$的领接矩阵为$A$, 则$A^n[i][j]$表示有顶点$i$到顶点$j$, 长度为$n$的路径的条数 \\
+    EX. $A^2[1][4] = a_{11} a_{14} + a_{12} a_{24} + a_{13} a_{34} + a_{14} a_{44}$, 一个因子为1, 则 \verb|i->k->j|路径存在 \\
+    邻接矩阵容易确定任意两个顶点之间是否有边连接, 但是确定图中有几条边, 需要按行和按列进行遍历每一个元素. $T(n) = O(|V|^2)$. \\
+    邻接矩阵计算顶点的度$T(n) = O(|V|)$
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\columnwidth]{./matrix.png}
+    \end{figure}
+    
+    
+
+\subsubsection{邻接表法}
+
+    \vspace{-1\baselineskip}
+    顺序存储+链式存储. 当存储稀疏图时, 可以减少大量空间浪费. 对每个顶点建立一个单链表, 称为\textbf{边表}(有向图中称为\textbf{出边表}), 边表表示依附于顶点$v_i$的边或者以$v_i$为尾的弧(有向图). 顶点的数据信息和边表的头指针使用\textbf{顺序存储}. \\
+    若为\textbf{无向图}, $S(n) = O(|V| + 2|E|)$(每条边出现两次); \textbf{有向图}: $S(n) = O(|V| + |E|)$
+
+    \begin{lstlisting}[style = Cpp]
+        // 边表结点
+        struct ArcNode
+        {
+            int adjvex;              // 该边指向的顶点
+            struct ArcNode *nextarc; // 下一条边
+        };
+        // 顶点表结点
+        struct VNode
+        {
+            VertexType data;   // 顶点信息
+            ArcNode *firstarc; // 指向第一条边或者弧的指针
+        };
+        // 邻接表
+        struct ALGraph
+        {
+            VNode vertices[MaxVertexNum];  // 边表
+            int vexnum, arcnum;            // 顶点数和边数
+        };
+    \end{lstlisting}
+
+    \newpage
+    \textbf{计算度} \\
+    1. \textbf{无向图}: 遍历顶点$v_i$的边表 \\
+    2. \textbf{有向图}: \textbf{出度}: 遍历顶点$v_i$的出边表; \textbf{入度}: 遍历全部顶点的出边表
+
+    \begin{note}
+        1. 有向图找出边方便, 找入边麻烦. 无向图找边方便. 若要确定两个顶点中是否右边, 需要在一个顶点的边表中找另一个顶点, 效率低 \\
+        2. 图的邻接表\textbf{不唯一}, 各边结点的链接次序任意    
+    \end{note}
+    
+
+\subsubsection{十字链表}
+
+    十字链表用于存储\textbf{有向图}, \textbf{顺序+链式存储}. 每条弧用弧结点存, 每个顶点用顶点节点存, 顶点结点为顺序存储. 十字链表\textbf{不唯一}. $S(n) = O(|V| + |E|)$. 从任意顶点出发, 能够快速遍历出边和全部入边, 求度方便.
+
+    \vspace{-1.5\baselineskip}
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{center}
+        弧结点
+
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        tailvex & headvex & hlink & tlink & (info) \\
+        \hline 
+        \end{tabular}
+        \end{center}
+
+        \noindent
+        tailvex: 弧尾顶点编号 \\
+        headvex: 弧头顶点编号 \\
+        hlink: 相同弧头的下一条弧(顶点的下一条入边) \\
+        tlink: 相同弧尾的下一条弧(顶点的下一条出边)
+        
+    
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{center}
+        顶点结点 
+
+        \begin{tabular}{|c|c|c|}
+        \hline
+        data & firstin & firstout \\
+        \hline
+        \end{tabular}
+        \end{center}
+        
+        \noindent
+        firstin: 顶点的第一条入边(以该顶点为弧头的弧) \\
+        firstout: 顶点的第一条出边(以该顶点为弧尾的弧)
+
+    
+    \end{minipage}
+    \end{center}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\columnwidth]{./crosslink.png}
+    \end{figure}
+
+    画图或编写算法时, 可以先把出边全部处理完, 再以此链接每个结点的入边表.
+
+\newpage
+\subsubsection{邻接多重表}
+
+    邻接多重表用于存储\textbf{无向图}, \textbf{顺序+链式存储}. 边存储于边结点中, 顶点存储于顶点结点中(顺序). 容易求得顶点和边的各种信息, 但是求两个顶点之间是否存在边和删除边时, 需要分别从两个结点开始遍历边表, 效率低. 
+
+    由于每条边依附于两个顶点, 因此, 每个边结点同时链接在两个顶点的链表中. 无向图的邻接多重表和邻接表的唯一区别: \textbf{邻接表}中同一条边有分属于两个链表中的两个结点, \textbf{邻接多重表中}只有一个结点
+
+    \vspace{-1.5\baselineskip}
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{center}
+        边结点
+
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        ivex & ilink & jvex & jlink & (info) \\
+        \hline 
+        \end{tabular}
+        \end{center}
+
+        \noindent
+        ivex, jvex: 顶点i, j的编号 \\
+        ilink, jlink: 依附于顶点i, j的下一条边
+        
+    
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+    \vspace{0pt}
+        \begin{center}
+        顶点结点 
+
+        \begin{tabular}{|c|c|}
+        \hline
+        data & firstedge \\
+        \hline
+        \end{tabular}
+        \end{center}
+        
+        \noindent
+        firstedge: 依附于该顶点的第一条边
+
+    
+    \end{minipage}
+    \end{center}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\columnwidth]{nondirectcrosslink.png}
+    \end{figure}
+    
+    画图或编写算法时, 可以每个顶点依次新增或链接完全衣服于该结点的边. 注意结点每个成员的意义, 链接边的时候注意链接到成员ilink还是jlink.
+
+    \begin{center}
+        \textbf{图存储方式总结}
+
+        \begin{tabular}{c|c|c|c|c}
+        \toprule
+        {} & 邻接矩阵 & 邻接表 & 十字链表 & 邻接多重表 \\
+        \midrule
+        空间复杂度 & $O(|V|^2)$ & \makecell{无向图: $O(|V| + 2|E|)$ \\ 有向图: $O(|V| + |E|)$} & $O(|V| + |E|)$ & $O(|V| + |E|)$ \\
+        \midrule
+        找相邻边 & 遍历行/列, $T(n) = O(|V|)$ & 有向图\makecell{找出边遍历结点出边表 \\ 找入度遍历整个邻接表} & 方便 & 方便 \\
+        \midrule
+        删除边或顶点 & \makecell{删除边方便\\ 删除顶点需要移动大量元素} & \makecell{无向图中删除边或者顶点都要 \\ 遍历两个顶点的边表, 不方便} & 方便 & 方便 \\
+        \midrule
+        适用 & 稠密图 & 都行 & 有向图 & 无向图 \\
+        \midrule
+        表示方式 & 唯一 & 不唯一 & 不唯一 & 不唯一 \\
+        \bottomrule        
+        \end{tabular}
+    \end{center}
+    
+\newpage
+\subsubsection{图的基本操作}
+
+    \noindent
+    Adjacent (G, x, y):判断图 G 是否存在边<x, y>或 (x, y)。\\
+    \indent 邻接矩阵: $O(1)$; 邻接表: 最好$O(1)$, 最坏$O(|V|-1)=O(|V|)$ \\
+    Neighbors (G, x): 列出图 G 中与结点 x 邻接的边。\\
+    \indent 邻接矩阵: $O(|V|)$; 邻接表: $O(1) \sim O(|V|)$. 其中有向图, 出边$O(1) \sim O(|V|)$, 入边: $O(|E|)$ \\
+    InsertVertex (G,x): 在图 G 中插入顶点 x 。\\
+    \indent $T(n) = O(1)$ \\
+    DeleteVertex (G, x): 从图 G 中删除顶点 x 。\\
+    \indent 邻接矩阵: $O(|V|)$(顶点x的行列全部置零, 再标记顶点已删除); 邻接表: $O(1) \sim O(|E|)$. \\
+    AddEdge (G, x, y):若无向边 (x, y)或有向边<x, y>不存在，则向图 G 中添加该边。\\
+    \indent $T(n) = O(1)$ \\
+    RemoveEdge (G, x, y):若无向边 (x, y)或有向边<x, y>存在，则从图 G 中删除该边。\\
+    \indent 邻接矩阵: $O(|1|)$; 邻接表: $O(1) \sim O(|V|)$. \\
+    FirstNeighbor (G, x): 求图 G 中顶点 x 的第一个邻接点，若有则返回顶点号。若x没有邻接点或图中不存在 x, 则返回－1 。\\
+    \indent 邻接矩阵: $O(1) \sim O(|V|)$; 邻接表: 无向图: $O(1)$, 有向图: 出边$O(1)$, 入边$O(1) \sim O(|E|)$. \\
+    NextNeighbor(G,x, y):假设图 G 中顶点y是顶点 x 的一个邻接点，返回除y外顶点 x 的下一个邻接点的顶点号，若y是 x 的最后一个邻接点，则返回－ 1 。\\
+    \indent 邻接矩阵: $O(|1|) \sim O(|V|)$; 邻接表: $O(1)$. \\
+    Get\_edge\_value (G, x, y): 获取图 G 中边 (x, y)或<x, y>对应的权值。\\
+    \indent 时间在于找边, 复杂度同Adjacent \\ 
+    Set\_edge\_value (G,x, y ,v): 设置图 G 中边 (x, y)或<x, y>对应的权值为 v 。\\
+    \indent 时间在于找边, 复杂度同Adjacent
 
 
 
