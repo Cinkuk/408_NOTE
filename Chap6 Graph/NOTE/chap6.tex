@@ -350,7 +350,7 @@
     \end{center}
     
 \newpage
-\subsubsection{图的基本操作}
+\subsection{图的基本操作}
 
     \noindent
     Adjacent (G, x, y):判断图 G 是否存在边<x, y>或 (x, y)。\\
@@ -374,8 +374,218 @@
     Set\_edge\_value (G,x, y ,v): 设置图 G 中边 (x, y)或<x, y>对应的权值为 v 。\\
     \indent 时间在于找边, 复杂度同Adjacent
 
+\subsection{图的遍历}
+
+    图在遍历过程中, 需要一个辅助数组 \verb|bool visited[numVertives]|来记录顶点是否已经访问过. 
+
+\subsubsection{广度优先搜索 BFS}
+
+    \vspace{-1\baselineskip}
+    类似于树的层序遍历. 对于每个结点, 先访问, 标记为已访问后, 入队; 结点出队时, 访问其全部邻接的未访问结点. BFS需要借助辅助队列实现.
+
+    \begin{lstlisting}[style = Cpp]
+        bool visited[MaxVertexNum];
+        SqQueue Q;
+        void BFSTraverse(Graph G)
+{
+            int i;
+            for (i=0; i<G.vexnum; i++) // 初始化辅助数组
+                visited[i] = false;
+            InitQueue(Q);
+            for (i=0; i<G.vexnum; i++) // 对每个连通分量都调用一次
+                if (!visited[i])
+                    BFS(G, i);
+        }
+    \end{lstlisting}
 
 
+    \newpage
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \textbf{邻接表实现}
+        
+        \begin{lstlisting}[style = Cpp]
+            void BFS (ALGraph G, int i)
+            {
+                int v, w; // 工作结点
+                ArcNode* p; // 用于访问邻接点
+                // 访问初始结点
+                visit(G, i);
+                visited[i] = true;
+                EnQueue(Q, i);
+                while (!QueueEmpty(Q)) { 
+                    DeQueue(Q, v); // 队首结点
+                    for (p=G.vertices[v].firstarc; p; p=p->nextarc) { // 遍历全部邻接点
+                        w = p->adjvex;
+                        if (!visited[w]) { // 未被访问
+                            visit(G, w);
+                            visited[w] = true;
+                            EnQueue(Q, w);
+                        }
+                    }
+                }    
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \textbf{邻接矩阵实现}
+
+        \begin{lstlisting}[style = Cpp]
+            void BFS(MGgraph G, int i)
+            {
+                int v, w; // 工作节点
+                // 访问初始结点
+                visit(G, i);
+                visited[i] = true;
+                EnQueue(Q, i);
+                while (!QueueEmpty(Q)) {
+                    DeQueue(Q, v); // 队首结点
+                    for (w=0; w<G.vexnum; w++) { // 遍历全部邻接点
+                        if (!visited[w] && G.edge[v][w] == 1) { // 未被访问且<v, w>or(v, w)有边
+                            visit(G, w);
+                            visited[w] = true;
+                            EnQueue(Q, w);
+                        }
+                    }
+                }
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
+    \textbf{单源最短路径}
+
+    对于\textbf{非带权图和权重均相等的图}, 可以使用BFS搜索单源最短路径. 对于带权图, 只能使用Floyd和Dijkstra.
+
+    \begin{lstlisting}[style = Cpp]
+        int d[MaxVertexNum]; // 记录源点到该点的最短路径长度
+        int path[MaxVertexNum]; // 记录该点在最短路径上的直接前驱
+        void BFS_Min_Path(Graph G, int u){
+            int w; // 工作结点
+            for (int i=0; i<G.vexnum; i++) // 初始化路径长度为无穷
+                d[i] = INT32_MAX;
+            visited[u] = true;
+            d[u] = 0;
+            EnQueue(Q, u);
+            while (!QueueEmpty(Q)) {
+                DeQueue(Q, u);
+                for (w=FirstNeighbor(G, u); w>0; w=NextNeighbor(G, u, w)) {
+                    if (!visited[w]) { // 未被访问
+                        visited[w] = true;
+                        EnQueue(Q, w);
+                        d[w] = d[u] + 1; // 在上一层长度基础上+1
+                        path[w] = u; // 记录w的前驱
+                    }
+                }
+            }
+        
+        }
+    \end{lstlisting}
+
+    \newpage
+    \textbf{性能分析}
+
+    \noindent
+    \textbf{空间复杂度}: 需要借助辅助队列, 最坏情况下$|V| - 1$个结点在第二次入队时入队. $S(n) = O(|V|)$ \\
+    \textbf{时间复杂度}: \\
+    邻接矩阵: $T(n) = O(|V| + |V|^2) = O(|V|^2)$ (遍历顶点 + 遍历边表); \\
+    邻接表: 有向: $T(n) = O(|V| + |E|)$, 无向: $T(n) = O(|V| + 2|E|)$
+
+    \textbf{广度优先生成树}
+
+    将遍历过程分层, 可以得到遍历树, 称为广度优先生成树. 该遍历树是指定顶点为根的树中, 高度最小的生成树. 同时, 层次也反映了从源点出发到各个顶点的最短距离. 对于同一个图, 邻接矩阵的表示是唯一的, 广度优先生成树也是唯一的; 邻接表不唯一, 其广度优先生成树亦不唯一. 对于非(强)连通图, 遍历时会产生广度优先生成森林.
+
+\subsubsection{深度优先搜索DFS}
+
+    DFS是一个递归算法, 需要使用递归工作栈.
+
+    \begin{lstlisting}[style = Cpp]
+        void DFSTraverse (Graph G)
+        {
+            int i;
+            for (i=0; i<G.vexnum; i++) // 初始化辅助数组
+                visited[i] = false;
+            for (i=0; i<G.vexnum; i++) // 对每个连通分量都调用一次
+                if (!visited[i])
+                    DFS(G, i);
+        }
+    \end{lstlisting}
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \textbf{邻接表实现}
+
+        \begin{lstlisting}[style = Cpp]
+            void DFS(ALGraph G, int i)
+            {
+                ArcNode* p; // 工作结点
+                int j;
+                visit(G, i);
+                visited[i] = true;
+                for (p=G.vertices[i].firstarc; p; p=p->nextarc) { // 访问全部邻接点
+                    j = p->adjvex;
+                    if (!visited[j]) // 未被访问
+                        DFS(G, j);
+                }
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \textbf{邻接矩阵实现}
+        
+        \begin{lstlisting}[style = Cpp]
+            void DFS (MGgraph G, int i)
+            {
+                int j; // 工作顶点
+                visit(G, i);
+                visited[i] = true;
+                for(j=0; j<G.vexnum; j++) { // 遍历各邻接点
+                    if (!visited[j] && G.edge[i][j] == 1) // 未被访问且有边
+                        DFS(G, j);
+                }
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
+    \newpage
+    \textbf{性能分析}
+    
+    \noindent
+    \textbf{空间复杂度}: 需要使用递归工作栈, $S(n) = O(|V|)$ \\
+    \textbf{时间复杂度}: \\
+    邻接矩阵: $T(n) = O(|V|^2)$ \\
+    邻接表: 有向图: $T(n) = O(|V| + |E|)$; 无向图: $T(n) = O(|V| + 2|E|)$
+
+    \textbf{深度优先生成树}
+
+    (强)连通图会产生深度优先生成树; (强)非连通图会生成深度优先生成森林. 
+
+    \subsubsection{图的遍历与连通性}
+    
+    \textbf{Traverse过程中, BFS/DFS的调用次数 = 图的连通分量个数}
+
+    对于\textbf{无向图}: 只需要一次遍历就能访问全部, 则是连通图; 否则为非连通图, 并且每次遍历能够访问该连通分量的全部顶点
+
+    \textbf{对于有向图}: 由于分为强连通分量和非强连通分量, 在非强连通分量中, 一次遍历不一定能访问该子图的全部顶点.
+
+    \begin{tikzpicture}[node distance=1.5cm]
+        \tikzstyle{vertex}=[circle, draw, minimum size=0.6cm]
+    
+        \node[vertex] (A) {A};
+        \node[vertex, right of=A] (B) {B};
+        \node[vertex, right of=B] (C) {C};
+        
+        \draw[->] (A) -- (B);
+        \draw[->] (C) -- (B);
+    \end{tikzpicture}
 
 \end{sloppy}
 \end{document}
