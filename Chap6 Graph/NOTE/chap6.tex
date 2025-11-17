@@ -40,7 +40,7 @@
     \newpage
     \noindent
     \textbf{完全图(简单完全图)}: 对于n个顶点的\textbf{无向图}, 有$\binom{n}{2} =  \frac{n(n-1)}{2}$条边的图(任意两个顶点之间有边); 对于n个顶点的\textbf{有向图}, 有$2 \binom{n}{2} = n(n-1)$条边的图(任意两个顶点之间有方向相反的两条边). n个顶点, 无向图, 边的条数$\in[0, \binom{n}{2}]$; 有向图, 边的条数$[0, n(n-1)]$ \\
-    \textbf{稠密图}: 边很多的图; \textbf{稀疏图}: 边很少的图. 一般, 满足$|E| < |V| \log_2 |V|$可视为稀疏图(没有绝对的判断标准) \\
+    \textbf{稠密图}: 边很多的图; \textbf{稀疏图}: 边很少的图. 一般, 满足$|E| < |V| \log_2 |V|$ 或 $|E| \ll \frac{|V|(|V|-1)}{2}$可视为稀疏图(没有绝对的判断标准) \\
     \textbf{有向树}: 一个顶点的入度为0, 其余顶点的入度均为1的有向图(不是强连通图) \\
     \textbf{树}: 1. 无向图; 2. 不存在回路; 3. 连通; 
 
@@ -493,7 +493,7 @@
     \textbf{空间复杂度}: 需要借助辅助队列, 最坏情况下$|V| - 1$个结点在第二次入队时入队. $S(n) = O(|V|)$ \\
     \textbf{时间复杂度}: \\
     邻接矩阵: $T(n) = O(|V| + |V|^2) = O(|V|^2)$ (遍历顶点 + 遍历边表); \\
-    邻接表: 有向: $T(n) = O(|V| + |E|)$, 无向: $T(n) = O(|V| + 2|E|)$
+    邻接表: 有向: $T(n) = O(|V| + |E|)$, 无向: $T(n) = O(|V| + 2|E|) = O(|V| + |E|)$
 
     \textbf{广度优先生成树}
 
@@ -586,6 +586,811 @@
         \draw[->] (A) -- (B);
         \draw[->] (C) -- (B);
     \end{tikzpicture}
+
+\subsection{最小生成(代价)树, MST}
+
+    包含连通图的全部顶点, 并且包含尽可能少的边. \textbf{边数 = 顶点数 - 1}. 最小生成树删去一条边变成非连通图; 新增一条边形成回路. 对于\textbf{带权连通无向图}, 生成树不同, 每棵树的权(\textbf{树中所有边的权之和})也可能不同. 仅无向图具有最小生成树.
+
+    当图中存在权重相同的边, 最小生成树可能不唯一; 当各边权值互不相等时, 最小生成树唯一.
+
+    生成最小生成树的算法: Prim算法, Kruskal算法. 均使用贪心策略.
+
+    \begin{lstlisting}[style = Pseudocode]
+    GENERATE_MST (G) 
+    {
+        T = NULL;
+        while (T 未形成MST) THEN
+            寻找一条最小权重边 (u, v), 并且加入T后不会形成回路;
+            T = T + (u, v);
+        ENDWHILE
+    }
+    \end{lstlisting}
+
+\newpage
+\subsubsection{Prim算法}
+
+    初始时任选一个顶点加入树, 在算法的每一轮过程中, 选择与当前树邻接, 且邻接边的权重最小的顶点, 将该顶点和边加入树, 直至生成树包含图的全部顶点.
+
+    时间复杂度: $O(|V|^2)$. (在每一轮过程中, 搜索仍未加入树的结点, 选取权重最小的边. $(n-1) + (n-2) + \dots +1$). 不依赖于$|E|$, 适用于边稠密的图.
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // Prim算法辅助结构
+            struct MinEdge {
+                int adjvex;    // 顶点
+                EdgeType lowcost; // 最小权值
+            };
+        
+            void MiniSpanTree_Prim(ALGraph& G, VertexType u) {
+                MinEdge closedge[MaxVertexNum];
+                int k = LocateVex(G, u);
+                
+                // 初始化closedge数组
+                for (int j = 0; j < G.vexnum; j++) {
+                    if (j != k) {
+                        closedge[j].lowcost = INT_MAX;
+                        closedge[j].adjvex = k;
+                    }
+                }
+                
+                // 处理起始顶点的邻接边
+                ArcNode* p = G.vertices[k].firstarc;
+                while (p != nullptr) {
+                    int j = p->adjvex;
+                    closedge[j].lowcost = p->weight;
+                    closedge[j].adjvex = k;
+                    p = p->nextarc;
+                }
+                
+                closedge[k].lowcost = 0; // 将顶点u加入U集合
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style=Cpp]
+            cout << "Prim算法最小生成树边集:" << endl;
+            // 选择其余G.vexnum-1个顶点
+            for (int i = 1; i < G.vexnum; i++) {
+                // 找出最小边
+                int min = INT_MAX;
+                int minIndex = -1;
+                for (int j = 0; j < G.vexnum; j++) {
+                    if (closedge[j].lowcost != 0 && closedge[j].lowcost < min) {
+                        min = closedge[j].lowcost;
+                        minIndex = j;
+                    }
+                }
+                
+                if (minIndex == -1) break;
+                
+                // 输出当前最小边
+                cout << "边: " << G.vertices[closedge[minIndex].adjvex].data 
+                    << " - " << G.vertices[minIndex].data 
+                    << ", 权重: " << closedge[minIndex].lowcost << endl;
+                
+                // 将顶点minIndex加入U集合
+                closedge[minIndex].lowcost = 0;
+                
+                // 更新closedge数组
+                p = G.vertices[minIndex].firstarc;
+                while (p != nullptr) {
+                    int j = p->adjvex;
+                    if (closedge[j].lowcost != 0 && p->weight < closedge[j].lowcost) {
+                        closedge[j].lowcost = p->weight;
+                        closedge[j].adjvex = minIndex;
+                    }
+                    p = p->nextarc;
+                }
+            }
+        }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+
+\newpage
+\subsubsection{Kruskal算法}
+
+    初始时只有n个顶点没有边, 每个顶点都是一个连通分量. 按照边的权, 不断选择当前未被选取过且权最小的边, 若该边依附的两个顶点落在T中不同的连通分量上(边的两端未连通), 将该边加入树, 否则选择下一条权最小的边. 直至已经选取的边数达到$|V| - 1$.
+
+    时间复杂度: 最坏情况需要对$|E|$都检查一次, 采用堆存储边集, 每次选择最小权值边需要$O(\log_2 |E|)$; 或对边做排序($O(|E| \log_2 |E|)$), 再使用并查集判断两个顶点是否属于同一个集合($O(\alpha(|V|))$, 增长极其缓慢, 视同常数). 总之, $T(n) = O(|E| \log_2 |E|)$, 不依赖$|V|$, 适合边稀疏而顶点多的图.
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // Kruskal算法辅助结构
+            struct Edge {
+                int u, v;      // 边的两个顶点
+                EdgeType weight; // 边的权重
+                
+                bool operator<(const Edge& other) const {
+                    return weight < other.weight;
+                }
+            };
+        
+            // 并查集实现
+            int Find(int parent[], int i) {
+                while (parent[i] != -1) {
+                    i = parent[i];
+                }
+                return i;
+            }
+        
+            void Union(int parent[], int x, int y) {
+                int xset = Find(parent, x);
+                int yset = Find(parent, y);
+                if (xset != yset) {
+                    parent[xset] = yset;
+                }
+            }
+                
+            void MiniSpanTree_Kruskal(ALGraph& G) {
+                vector<Edge> edges;
+                
+                // 收集所有边 (~只存储邻接矩阵的上三角)
+                for (int i = 0; i < G.vexnum; i++) {
+                    ArcNode* p = G.vertices[i].firstarc;
+                    while (p != nullptr) {
+                        // 避免重复添加无向图的边
+                        if (i < p->adjvex) {
+                            edges.push_back({i, p->adjvex, p->weight});
+                        }
+                        p = p->nextarc;
+                    }
+                }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // 按权重排序
+            sort(edges.begin(), edges.end());
+            
+            int parent[MaxVertexNum];
+            for (int i = 0; i < G.vexnum; i++) {
+                parent[i] = -1;
+            }
+            
+            cout << "Kruskal算法最小生成树边集:" << endl;
+            int count = 0; // 已选边数
+            for (const Edge& e : edges) {
+                if (count >= G.vexnum - 1) break;
+                
+                int root1 = Find(parent, e.u);
+                int root2 = Find(parent, e.v);
+                
+                if (root1 != root2) {
+                    cout << "边: " << G.vertices[e.u].data 
+                        << " - " << G.vertices[e.v].data 
+                        << ", 权重: " << e.weight << endl;
+                    Union(parent, root1, root2);
+                    count++;
+                }
+            }
+        }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
+\newpage
+\subsection{最短路径}
+
+    图是带权图时, 不能使用BFS. 最短路径分为: 单源最短路径(一个顶点到其他各个顶点的最短路径)和求每对顶点间的最短路径. 单源最短路径使用Dijkstra, 每对顶点间的最短路径使用Floyd, 在边权均非负时, 也可以轮流将每个顶点作为源点执行一个Dijkstra, $T(n) = O(|V| \cdot |V|^2) = O(|V|^3)$.
+
+    \begin{center}
+        \begin{tabular}{c|c|c|c}
+            \toprule
+             & BFS & Dijkstra & Floyd \\
+            \midrule
+            用途 & 单源最短路径 & 单源最短路径 & 各顶点之间距离 \\
+            \midrule
+            无权图 & 适用 & 适用 & 适用 \\
+            \midrule
+            带权图 & 不适用 & 适用 & 适用 \\
+            \midrule
+            带负权值 & 不适用 & 不适用 & 适用 \\
+            \midrule
+            \makecell{带负权回路 \\ (可能不存在最短路径)} & 不适用 & 不适用 & 不适用 \\
+            \midrule
+            时间复杂度 & $O(|V|^2)$ 或 $O(|V| + |E|)$ & $O(|V|^2)$ & $O(|V|^3)$ \\
+            \bottomrule
+        \end{tabular}       
+    \end{center}
+
+
+\subsubsection{Dijkstra}
+
+    使用贪心算法, 时间复杂度为$O(|V|^2)$. 不适用于负权值图.
+
+    使用三个辅助数组: \\
+    \verb|final[]|: 标记各个顶点是否已经找到最短路径 \\
+    \verb|dist[]|: 源点到其他顶点的当前的最短路径长度 \\
+    \verb|path[]|: 源点到其他顶点的的最短路径上, 顶点i的前驱结点. \verb|path[0] = -1|
+
+    \textbf{初始化} \verb|dist[]|: 对 \verb|path[i]|若源点$v_0$到$v_i$有弧, 这初始化为弧的权值, 否则为无穷
+
+    \begin{lstlisting}[style = Pseudocode]
+    // initial S
+    S = {0};
+    WHILE (V - S NOT empty) THEN
+        select vj, dist[j] = min{dist[u] | u in V-S};
+        S += j
+        // update dist
+        FOR k in V - S THEN
+            dist[k] = min(dist[k], disk[j] + arcs[j][k])
+        ENDFOR
+    ENDWHILE
+    \end{lstlisting}
+    
+    \newpage
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // Dijkstra算法（邻接矩阵版本）
+            void ShortestPath_Dijkstra_MG(MGgraph& G, VertexType v) 
+            {
+                DistInfo D[MaxVertexNum];
+                int v0 = LocateVex_MG(G, v);
+                
+                if (v0 == -1) {
+                    cout << "顶点不存在!" << endl;
+                    return;
+                }
+                
+                // 初始化
+                for (int i = 0; i < G.vexnum; i++) {
+                    D[i].dist = G.edge[v0][i];
+                    D[i].visited = false;
+                    if (D[i].dist < INF && i != v0) {
+                        D[i].path = v0;
+                    } else {
+                        D[i].path = -1;
+                    }
+                }
+                
+                D[v0].dist = 0;
+                D[v0].visited = true;
+                
+                // 主循环，每次求得v0到某个顶点v的最短路径
+                for (int i = 1; i < G.vexnum; i++) {
+                    EdgeType min = INF;
+                    int minIndex = -1;
+                    
+                    // 选择当前未访问的最小距离顶点
+                    for (int j = 0; j < G.vexnum; j++) {
+                        if (!D[j].visited && D[j].dist < min) {
+                            min = D[j].dist;
+                            minIndex = j;
+                        }
+                    }
+                    
+                    if (minIndex == -1) break; // 剩余顶点不可达
+                    
+                    D[minIndex].visited = true;
+
+                    // 更新通过minIndex到其他顶点的距离
+                    for (int j = 0; j < G.vexnum; j++) {
+                        if (!D[j].visited && G.edge[minIndex][j] < INF) {
+                            if (D[minIndex].dist + G.edge[minIndex][j] < D[j].dist) {
+                                D[j].dist = D[minIndex].dist + G.edge[minIndex][j];
+                                D[j].path = minIndex;
+                            }
+                        }
+                    }
+                }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // 输出结果
+            cout << "Dijkstra算法结果（邻接矩阵）从顶点 " << v << " 到各顶点的最短路径:" << endl;
+            for (int i = 0; i < G.vexnum; i++) {
+                if (i != v0) {
+                    cout << "到顶点 " << G.vex[i] << ": 距离=";
+                    if (D[i].dist == INF) {
+                        cout << "∞";
+                    } else {
+                        cout << D[i].dist;
+                    }
+                    cout << ", 路径: ";
+                    
+                    // 反向输出路径
+                    vector<int> path;
+                    int k = i;
+                    while (k != -1) {
+                        path.push_back(k);
+                        k = D[k].path;
+                    }
+                    
+                    for (int j = path.size() - 1; j >= 0; j--) {
+                        cout << G.vex[path[j]];
+                        if (j > 0) cout << " -> ";
+                    }
+                    cout << endl;
+                }
+            }
+        }        
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+
+    \newpage
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            // Dijkstra算法（邻接表版本）
+            void ShortestPath_Dijkstra_AL(ALGraph& G, VertexType v) {
+                DistInfo D[MaxVertexNum];
+                int v0 = LocateVex_AL(G, v);
+                
+                if (v0 == -1) {
+                    cout << "顶点不存在!" << endl;
+                    return;
+                }
+                
+                // 初始化距离数组
+                for (int i = 0; i < G.vexnum; i++) {
+                    D[i].dist = INF;
+                    D[i].visited = false;
+                    D[i].path = -1;
+                }
+                D[v0].dist = 0;
+                
+                // 使用优先队列优化（可选，这里使用简单实现）
+                for (int i = 0; i < G.vexnum; i++) {
+                    // 找到未访问的最小距离顶点
+                    EdgeType min = INF;
+                    int minIndex = -1;
+                    for (int j = 0; j < G.vexnum; j++) {
+                        if (!D[j].visited && D[j].dist < min) {
+                            min = D[j].dist;
+                            minIndex = j;
+                        }
+                    }
+                    
+                    if (minIndex == -1) break;
+                    D[minIndex].visited = true;
+                    
+                    // 更新邻接顶点距离
+                    ArcNode* p = G.vertices[minIndex].firstarc;
+                    while (p != nullptr) {
+                        int j = p->adjvex;
+                        if (!D[j].visited && D[minIndex].dist + p->weight < D[j].dist) {
+                            D[j].dist = D[minIndex].dist + p->weight;
+                            D[j].path = minIndex;
+                        }
+                        p = p->nextarc;
+                    }
+                }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+                // 输出结果
+                cout << "Dijkstra算法结果（邻接表）从顶点 " << v << " 到各顶点的最短路径:" << endl;
+                for (int i = 0; i < G.vexnum; i++) {
+                    if (i != v0) {
+                        cout << "到顶点 " << G.vertices[i].data << ": 距离=";
+                        if (D[i].dist == INF) {
+                            cout << "∞";
+                        } else {
+                            cout << D[i].dist;
+                        }
+                        cout << ", 路径: ";
+                        
+                        vector<int> path;
+                        int k = i;
+                        while (k != -1) {
+                            path.push_back(k);
+                            k = D[k].path;
+                        }
+                        
+                        for (int j = path.size() - 1; j >= 0; j--) {
+                            cout << G.vertices[path[j]].data;
+                            if (j > 0) cout << " -> ";
+                        }
+                        cout << endl;
+                    }
+                }
+            }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
+\newpage
+\subsubsection{Floyd}
+
+    使用动态规划. 递推一个n阶的状态矩阵, $A^{(-1)}, A^{(0)}, \dots, A^{(n-1)}$. 每一轮允许新增一个顶点作为路径的中转点. 其中, $A^{(-1)}[i][j]$表示允许通过第k个顶点中转时, 顶点i到j的最短路径长度. 算法类似于矩阵链乘法的动态规划实现. 只能在邻接矩阵上实现(其他结构最终也需要构造出n阶矩阵), 适用于负权值图.
+    \\
+    时间复杂度: $O(|V| \dots |V|^2) = O(|V|^3)$, $|V|$轮, 每轮遍历$|V|^2$大小的矩阵. \\
+    状态转移方程: 
+    $
+        A^{(k)}[i][j] = \min \{A^{(k-1)} [i][j], A^{(k-1)} [i][k] + A^{(k-1)} [k][j] \}, k=0, 1, \dots, n-1
+    $ 
+    \\
+    初始化$A^{(-1)}[i][j] = arcs[i][j]$, 无<i, j>则初始化为无穷.
+    \\
+    回溯路径时, 查 \verb|path|, 若 \verb|path[i][j] = k|, 递归地查 \verb|path[i][k], path[k][j]| \\
+    直至 \verb|path[i][k] == -1, path[k][j] == -1|
+    
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+            void ShortestPath_Floyd(MGgraph& G) {
+                EdgeType A[MaxVertexNum][MaxVertexNum]; // 距离矩阵
+                int path[MaxVertexNum][MaxVertexNum];   // 路径矩阵
+                // 初始化
+                for (int i = 0; i < G.vexnum; i++) {
+                    for (int j = 0; j < G.vexnum; j++) {
+                        A[i][j] = G.edge[i][j];
+                        if (i != j && A[i][j] < INF) {
+                            path[i][j] = i;
+                        } else {
+                            path[i][j] = -1;
+                        } } }
+                        
+                // Floyd算法核心
+                for (int k = 0; k < G.vexnum; k++) {
+                    for (int i = 0; i < G.vexnum; i++) {
+                        for (int j = 0; j < G.vexnum; j++) {
+                            if (A[i][k] < INF && A[k][j] < INF && 
+                                A[i][k] + A[k][j] < A[i][j]) {
+                                A[i][j] = A[i][k] + A[k][j];
+                                path[i][j] = path[k][j];
+                            }
+                        }
+                    }
+                }
+                // 输出结果
+                cout << "Floyd算法所有顶点对最短路径:" << endl;
+                cout << "距离矩阵:" << endl;
+                for (int i = 0; i < G.vexnum; i++) {
+                    for (int j = 0; j < G.vexnum; j++) {
+                        if (A[i][j] == INF) {
+                            cout << setw(4) << "∞";
+                        } else {
+                            cout << setw(4) << A[i][j];
+                        }
+                    }
+                    cout << endl;
+                }
+        \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+        \begin{lstlisting}[style = Cpp]
+                // 输出具体路径
+                cout << "\n具体路径:" << endl;
+                for (int i = 0; i < G.vexnum; i++) {
+                    for (int j = 0; j < G.vexnum; j++) {
+                        if (i != j && A[i][j] < INF) {
+                            cout << G.vex[i] << " 到 " << G.vex[j] << ": 距离=" << A[i][j] << ", 路径: ";
+                            
+                            vector<int> p;
+                            int k = j;
+                            while (k != i) {
+                                p.push_back(k);
+                                k = path[i][k];
+                            }
+                            p.push_back(i);
+                            
+                            for (int idx = p.size() - 1; idx >= 0; idx--) {
+                                cout << G.vex[p[idx]];
+                                if (idx > 0) cout << " -> ";
+                            }
+                            cout << endl;
+                        } } } }
+        \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
+\subsection{有向无环图(DAG)描述表达式}
+
+    比如, 对于表达式 $((a + b) * (b * (c + d)) + (c + d) * e) * ((c + d) * e)$ 
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\columnwidth]{DAG.png}
+    \end{figure}
+
+    \noindent
+    1. 各操作数不重复地排成一排 \\
+    2. 表达式按照运算顺序标出运算符符号 \\
+    3. 依次加入运算符, 分层 (若需要利用下一层结果, 本运算符在上一层) \\
+    4. 自底向上合并两侧操作数相同的运算符
+
+    分层效果类似于 \\
+    \verb|表达式: ((a + b) * (b * (c + d)) + (c + d) * e) * ((c + d) * e)| \\
+    \verb|层次:       1    3    2    1     4    1    2    5     1    2|
+
+\newpage
+\subsection{拓扑排序}
+
+    \textbf{顶点表示活动的网络(AOV网)}: 用有向无环图表示一个工程, 顶点表示活动, 弧$<V_i, V_j>$表示活动$V_i$必须先于$V_j$进行. 
+
+    \textbf{拓扑排序}: 由一个有向无环图的顶点组成的序列, 且满足以下条件 \\
+    (1) 每个顶点均出现且只出现一次; \\
+    (2) 若顶点A在序列中排在B之前, 这图中不存在从B到A的路径
+
+    \begin{lstlisting}[style = Pseudocode]
+    Function 拓扑排序 (Graph G) {
+        WHILE (G NOT empty || G 无入度为0的顶点) THEN
+            select v ( ID(v) = 0(无前驱) ) ;
+            delete v and all <v, x>;
+        ENDWHILE
+    }
+    \end{lstlisting}
+
+    时间复杂度: 邻接表$O(|V| + |E|)$; 邻接矩阵: $O(|V|^2)$
+
+    \begin{lstlisting}[style = Pseudocode]
+        Function 逆拓扑排序 (Graph G) {
+            WHILE (G NOT empty || G 无出度为0的顶点) THEN
+                select v ( OD(v) = 0(无后继) ) ;
+                delete v and all <x, v>;
+            ENDWHILE
+        }
+    \end{lstlisting}
+
+    \noindent
+    逆拓扑排序: 可以选择逆邻接表(边表存储的是指向结点的边) \\
+    \textbf{拓扑排序与环的关系}: 在拓扑排序中, 若网中不存在ID=0的顶点, 则必然存在环.
+    
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\columnwidth]{sort.png}
+    \end{figure}
+
+    \noindent
+    拓扑排序的结果可能不唯一; AOV网必定有拓扑排序, 但是存在拓扑排序的图不一定是AOV网 \\
+    判断拓扑排序是否唯一的判断条件是: 每次输出顶点式, 检测入度为0的顶点数目是否为1, 若每次都唯一, 则拓扑排序序列唯一 \\
+    AOV网中每个顶点的编号是人为指定的, 可以按照排序序列依次重新编号生成新的AOV邻接存储矩阵, 可以将原先的矩阵转换为\textbf{三角矩阵}以压缩存储; 若一个的邻接矩阵是三角矩阵, 则必定存在拓扑序列, 反之不一定成立
+    
+    \newpage
+
+    % new two columns
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+    \begin{lstlisting}[style = Cpp]
+        // 邻接矩阵拓扑排序（Kahn算法 - 基于入度）
+        bool TopologicalSort_MG_Kahn(MGgraph& G) {
+            vector<int> inDegree(G.vexnum, 0);
+            queue<int> q;
+            vector<VertexType> result;
+            
+            // 计算每个顶点的入度
+            for (int i = 0; i < G.vexnum; i++) {
+                for (int j = 0; j < G.vexnum; j++) {
+                    if (G.edge[i][j] != 0) {
+                        inDegree[j]++;
+                    }
+                }
+            }
+            
+            // 将入度为0的顶点加入队列
+            for (int i = 0; i < G.vexnum; i++) {
+                if (inDegree[i] == 0) {
+                    q.push(i);
+                }
+            }
+            
+            int count = 0; // 记录已输出的顶点数
+            while (!q.empty()) {
+                int v = q.front();
+                q.pop();
+                result.push_back(G.vex[v]); // 存入用于输出的vector
+                count++;
+                
+                // 减少所有邻接顶点的入度
+                for (int i = 0; i < G.vexnum; i++) {
+                    if (G.edge[v][i] != 0) { // <v, i>
+                        inDegree[i]--;
+                        if (inDegree[i] == 0) { // 新的无前驱结点
+                            q.push(i);
+                        }
+                    }
+                }
+            }
+            
+            // 若可以拓扑排序, 则全部结点应该已经存入result
+            if (count != G.vexnum) { 
+                cout << "图中存在环，无法进行拓扑排序！" << endl;
+                return false;
+            }
+            
+            cout << "拓扑排序结果(Kahn-邻接矩阵): ";
+            for (VertexType v : result) {
+                cout << v << " ";
+            }
+            cout << endl;
+            return true;
+        }
+    \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+    若使用邻接表, 则需要改动入度计算和改变入度的逻辑
+    
+    \begin{lstlisting}[style = Cpp]
+        // 计算每个顶点的入度
+        for (int i = 0; i < G.vexnum; i++) {
+            ArcNode* p = G.vertices[i].firstarc;
+            while (p != nullptr) {
+                inDegree[p->adjvex]++;
+                p = p->nextarc;
+            }
+        }
+        // 减少所有邻接顶点的入度
+        ArcNode* p = G.vertices[v].firstarc;
+        while (p != nullptr) {
+            int adjvex = p->adjvex;
+            inDegree[adjvex]--;
+            if (inDegree[adjvex] == 0) {
+                q.push(adjvex);
+            }
+            p = p->nextarc;
+        }
+    \end{lstlisting}
+
+    若需要逆拓扑排序, 逆向输出result. 或者拓扑使用队列, 逆拓扑使用栈
+
+    \end{minipage}
+    \end{center}
+    
+    \begin{center}
+    \begin{minipage}[t]{0.5\textwidth}
+    \vspace{0pt}
+        \textbf{DFS实现拓扑排序的思路}
+
+        \vspace{-0.5\baselineskip}
+        \begin{verbatim}
+对每个未访问的结点执行DFS 
+标记当前结点为正在访问 
+访问每个邻接点 
+    如果邻居为正在访问, 有环, 报错 
+    如果邻居为访问完, 跳过 
+    如果邻居为未访问, 递归DFS 
+标记当前结点为未访问 
+标记当前结点为访问完 
+当前结点压入结果序列头部, 退栈
+        \end{verbatim}
+
+        \vspace{-1.5\baselineskip}
+        \textbf{逆拓扑排序}只需要逆转拓扑序列, \\
+        或者拓扑用栈, 逆拓扑用队列
+        
+        \noindent
+        \verb|visited[]|: \\
+        判断顶点是否已在拓扑序列中, 阻止重复排序 \\
+        \verb|visiting[]|: \\
+        判断顶点是否在当前DFS搜索路径上, 检测环, \\
+        阻止无限递归
+
+        \indent\par
+        \textbf{为什么需要两个辅助数组}: 考虑图
+
+        \begin{tikzpicture}[node distance=1.3cm]
+            \tikzstyle{vertex}=[circle, draw, minimum size=0.3cm]
+        
+            \node[vertex] (A) {A};
+            \node[vertex, above right of=A] (B) {B};
+            \node[vertex, below right of=A] (C) {C};
+            \node[vertex, below right of=B] (D) {D};
+            \node[vertex, right of=D] (E) {E};
+            
+            \draw[->] (A) -- (B);
+            \draw[->] (A) -- (C);
+            \draw[->] (C) -- (D);
+            \draw[->] (B) -- (D);
+            \draw[->] (D) -- (E);
+        \end{tikzpicture}
+
+        \noindent
+        简记 \verb|visited[i]=a, visiting[i]=b| 为i:(a, b) \\
+        排序过程为: \\
+        access A, A:(false, true); access B, B:(false, true); \\
+        access D, D:(false, true); access E, E:(false, true); \\
+        return to A. \\
+        A:(false, true); B:(true, false) \\
+        D:(true, false); E:(true, false) \\
+        access C, C(false, true); return to A \\
+        >> Topo: ACBDE
+
+        若只设置visited[], visited[i]=a简记为: i:(a) \\
+        access A, A:(true); access B, B:(true) \\
+        access D, D:(true); access E, E:(true) \\
+        return to A \\
+        A:(true), B(false), D(false), E(false) \\
+        access C, C:(true); access D, D:(true); access E, E:(true)\\
+        拓扑结果[C, D, E, B, D, E] \\
+        至此, 可以看见只设置一个数组时, \\
+        随着退栈时visited状态复原为false, \\
+        一个结点可能会被计入两条拓扑序列中, 显然错误. \\
+        若不还原, DFS无法进行
+
+    \end{minipage}
+    \begin{minipage}[t]{0.45\textwidth}
+    \vspace{0pt}
+    \begin{lstlisting}[style = Cpp]
+        // Topo递归部分
+        bool DFS_Topo(ALGraph &G, int v,
+                    vector<bool> &visiting,
+                    vector<bool> &visited,
+                    stack<int> &S)
+        {
+            visiting[v] = true;
+
+            for (ArcNode *p = G.vertices[v].firstarc; p != nullptr; p = p->nextarc) {
+                int w = p->adjvex;
+
+                if (visiting[w]) {
+                    // 回到递归栈 — 必有环
+                    return false;
+                }
+
+                if (!visited[w]) {
+                    if (!DFS_Topo(G, w, visiting, visited, S))
+                        return false;
+                }
+            }
+
+            visiting[v] = false;  // 离开递归栈
+            visited[v] = true;    // 已完成
+            S.push(v);
+            return true;
+        }
+        // Topo主过程
+        bool TopoSort_DFS(ALGraph &G)
+        {
+            vector<bool> visiting(G.vexnum, false);
+            vector<bool> visited(G.vexnum, false);
+
+            stack<int> S;
+
+            for (int i = 0; i < G.vexnum; i++) {
+                if (!visited[i]) {
+                    if (!DFS_Topo(G, i, visiting, visited, S)) {
+                        cout << "Graph has a cycle. Topological sort impossible." << endl;
+                        return false;
+                    }
+                }
+            }
+
+            cout << "Topo Order (DFS): ";
+            while (!S.empty()) {
+                cout << G.vertices[S.top()].data << " ";
+                S.pop();
+            }
+            cout << endl;
+            return true;
+        }
+    \end{lstlisting}
+    \end{minipage}
+    \end{center}
+    
+
+    
+
+
+    
+    
+    
+
+
 
 \end{sloppy}
 \end{document}

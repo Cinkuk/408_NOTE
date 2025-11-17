@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{microtype}
 \usepackage{multirow}
+\usepackage{multicol}
 \usepackage{booktabs}
 \usepackage{bm}
 \usepackage{verbatim}
@@ -30,7 +31,7 @@
 }
 
 \lstdefinelanguage{Pseudocode}{
-    keywords = {IF, ELSEIF, ELSE, THEN, ENDIF, FOR, ENDFOR, WHIL, ENDWHILE, FROM, TO, DO, END, Function, return, true, false, NOT, INPUT, OUTPUT, None},
+    keywords = {IF, ELSEIF, ELSE, THEN, ENDIF, FOR, ENDFOR, WHILE, ENDWHILE, FROM, TO, DO, END, Function, return, true, false, NOT, INPUT, OUTPUT, None},
     comment = [l]{//},
     morecomment = [s]{/*}{*/}
 }
@@ -38,7 +39,7 @@
 \lstdefinestyle{Pseudocode}{
     language        =   Pseudocode,
     basicstyle      =   \ttfamily\footnotesize,
-    keywordstyle    =   \rmfamily\tiny\bfseries\underbar,
+    keywordstyle    =   \rmfamily\bfseries,
     stringstyle     =   \itshape,
     commentstyle    =   \itshape,
     numbers         =   left,
