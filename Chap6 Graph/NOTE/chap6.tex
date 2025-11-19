@@ -50,9 +50,9 @@
     \end{figure}
 
     \textbf{找强连通分量} \\
-    1. 分离出孤立顶点 \\
-    2. 分离出没有出度的顶点和与其相连的边 \\
-    3. 分离出没有入度的顶点和与其相连的边
+    1. 不断分离出孤立顶点 \\
+    2. 不断分离出没有出度的顶点和与其相连的边 \\
+    3. 不断分离出没有入度的顶点和与其相连的边
 
     \begin{figure}[htbp]
         \centering
@@ -347,6 +347,22 @@
         表示方式 & 唯一 & 不唯一 & 不唯一 & 不唯一 \\
         \bottomrule        
         \end{tabular}
+    \end{center}
+
+    \begin{center}
+        \textbf{图算法的时间复杂度}
+
+        \begin{tabular}{c|c|c|c|c|c|c|c|c}
+            \toprule
+             & Dijkstra & Floyd & Prim & Kruskal & DFS & BFS & 拓扑排序 & 求关键路径 \\
+             \midrule
+            邻接矩阵 & $O(n^2)$ & $O(n^3)$ & $O(n^2)$ &  & $O(n^2)$ & $O(n^2)$ & $O(n^2)$ & $O(n^2)$ \\
+            \midrule
+            邻接表 &  &  &  & $O(e \log_2 e)$ & $O(n+e)$ & $O(n+e)$ & $O(n+e)$ & $O(n+e)$ \\
+            \bottomrule
+        \end{tabular}
+
+        \note{$n$: 即顶点数$|V|$; $e$: 即边数$|E|$}
     \end{center}
     
 \newpage
@@ -1097,6 +1113,19 @@
     \end{minipage}
     \end{center}
     
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.6\columnwidth]{dijkstra.png}
+    \end{figure}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\columnwidth]{floyd.png}
+    \end{figure}
+    
+    
+    
+    
 \subsection{有向无环图(DAG)描述表达式}
 
     比如, 对于表达式 $((a + b) * (b * (c + d)) + (c + d) * e) * ((c + d) * e)$ 
@@ -1119,7 +1148,7 @@
 \newpage
 \subsection{拓扑排序}
 
-    \textbf{顶点表示活动的网络(AOV网)}: 用有向无环图表示一个工程, 顶点表示活动, 弧$<V_i, V_j>$表示活动$V_i$必须先于$V_j$进行. 
+    \textbf{顶点表示活动的网络(AOV网)}: 用有向无环图表示一个工程, 顶点表示活动, 弧$<V_i, V_j>$表示活动$V_i$必须先于$V_j$进行. AOV网是有向无环图. 
 
     \textbf{拓扑排序}: 由一个有向无环图的顶点组成的序列, 且满足以下条件 \\
     (1) 每个顶点均出现且只出现一次; \\
@@ -1381,6 +1410,66 @@
     \end{lstlisting}
     \end{minipage}
     \end{center}
+
+\newpage
+\subsection{关键路径}
+    
+    \textbf{AOE网}: 用边表示活动的网络. 带权有向图, 顶点表示事件, 有向边表示活动, 边的权值表示完成该活动的开销. AOE网是有向无环图. \textbf{源点(开始顶点)}: 仅有的1个入度为0的顶点; \textbf{汇点(结束顶点)}: 仅有的一个出度为0的顶点. AOE网中, 有些活动可以并行进行. \textbf{关键路径}: 具有最大路径长度的路径, \textbf{关键活动}: 关键路径上的活动. \textbf{完成整个工程的最短时间}: 关键路径的长度.
+
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+        \tikzstyle{vertex}=[circle, draw, minimum size=0.6cm]
+    
+        \node[vertex] (A) {j};
+        \node[vertex, right of=A] (B) {k};
+        
+        \draw[->] (A) -- (B);
+    \end{tikzpicture}
+    \end{center}
+
+    \noindent
+    事件的\textbf{最早发生时间}$v_e (k)$: $v_e(\mbox{源点}) = 0$; $v_e(k) = \max \{v_e(j) + weight<j, k>\}$ \\
+    事件的\textbf{最迟发生时间}$v_l(k)$: $v_l(\mbox{汇点}) = v_e(\mbox{汇点})$; $v_l(j) = \min \{v_l(k) - weight<j, k>\}$ \\
+    活动的\textbf{最早开始时间}$e(i)$: $<j, k>$表示活动$a_i$, 则$e(i) = v_e(j)$ (弧尾事件的最早发生时间) )\\
+    活动的\textbf{最迟开始时间}$l(i)$: $<j, k>$表示活动$a_i$, 则$l(i) - v_l(k) - weight<j, k>$ (弧头最迟发生时间 - 开销) \\
+    活动最迟开始时间与最早开始时间的差额: $d(i) = l(i) - e(i)$, 该活动的\textbf{时间余量或可以拖延的时间}, $d(i) = 0$的活动为关键活动.
+
+    \textbf{求关键路径的算法}
+
+    \vspace{-1\baselineskip}
+    \begin{verbatim}
+1. 从源点出发, 令其ve=0, 按拓扑序列求其余顶点最早发生时间
+2. 从汇点出发, 令其vl=ve, 按逆拓扑排序序列求其余顶点最迟发生时间
+3. 求各弧的e(), l()
+4. 求各个活动的d(), 找出全部d=0的活动
+    \end{verbatim}
+    
+    \vspace{-1.5\baselineskip}
+    \noindent
+    1. 加快关键活动可以缩短整个工程的工期, 但是不能任意缩短, 缩短到一定程度, 关键活动会变成非关键活动 \\
+    2. 对于有几条关键路径的网, 只提高一条关键路径上的关键活动速度不能缩短工期, 必须加快包含在所有关键路径上的关键活动才能缩短工期
+    
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.55\columnwidth]{event1.png}
+    \end{figure}
+    
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.6\columnwidth]{event2.png}
+    \end{figure}
+    
+    \textbf{快速求出关键路径}
+        
+    \noindent
+    只需要求出$v_e$, 在每次取max中, 舍弃产生较小值的边. $v_e(1) = 0; v_e(2) = 3; v_e(3) = 2;$ \\
+    $v_e(4) = \max \{v_e(2) + 2, v_e(3) + 4\} \max \{5, 6\} = 6, \mbox{舍弃}a_3; $ \\
+    $v_e(5) = v_e(2) + 3 = 6; $ \\$
+    v_e(6) = \max \{v_e(5) + 1, v_e(4) + 2, v_e(3) + 3\} = \max \{7, 8, 5\} = 8, \mbox{舍弃} a_8, a_6$. \\
+    剩下的边里面, 从源点到汇点的只有$a_2 -> a_5 -> a_7$
+
+    
+    
     
 
     
